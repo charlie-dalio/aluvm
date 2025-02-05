@@ -163,19 +163,19 @@ pub trait BytecodeWrite<Id: SiteId> {
     }
 
     /// Write a single bit.
-    fn write_1bit(&mut self, data: impl Into<u1>) -> Result<(), Self::Error>;
+    fn write_1bit(&mut self, data: u1) -> Result<(), Self::Error>;
     /// Write two bits.
-    fn write_2bits(&mut self, data: impl Into<u2>) -> Result<(), Self::Error>;
+    fn write_2bits(&mut self, data: u2) -> Result<(), Self::Error>;
     /// Write three bits.
-    fn write_3bits(&mut self, data: impl Into<u3>) -> Result<(), Self::Error>;
+    fn write_3bits(&mut self, data: u3) -> Result<(), Self::Error>;
     /// Write four bits.
-    fn write_4bits(&mut self, data: impl Into<u4>) -> Result<(), Self::Error>;
+    fn write_4bits(&mut self, data: u4) -> Result<(), Self::Error>;
     /// Write five bits.
-    fn write_5bits(&mut self, data: impl Into<u5>) -> Result<(), Self::Error>;
+    fn write_5bits(&mut self, data: u5) -> Result<(), Self::Error>;
     /// Write six bits.
-    fn write_6bits(&mut self, data: impl Into<u6>) -> Result<(), Self::Error>;
+    fn write_6bits(&mut self, data: u6) -> Result<(), Self::Error>;
     /// Write seven bits.
-    fn write_7bits(&mut self, data: impl Into<u7>) -> Result<(), Self::Error>;
+    fn write_7bits(&mut self, data: u7) -> Result<(), Self::Error>;
 
     /// Write byte.
     fn write_byte(&mut self, data: u8) -> Result<(), Self::Error>;
