@@ -365,38 +365,38 @@ where
 {
     type Error = MarshallError;
 
-    fn write_1bit(&mut self, data: impl Into<u1>) -> Result<(), MarshallError> {
-        self.write(data.into().into_u8() as u32, u5::with(1))
+    fn write_1bit(&mut self, data: u1) -> Result<(), MarshallError> {
+        self.write(data.into_u8() as u32, u5::with(1))
             .map_err(MarshallError::from)
     }
 
-    fn write_2bits(&mut self, data: impl Into<u2>) -> Result<(), MarshallError> {
-        self.write(data.into().to_u8() as u32, u5::with(2))
+    fn write_2bits(&mut self, data: u2) -> Result<(), MarshallError> {
+        self.write(data.to_u8() as u32, u5::with(2))
             .map_err(MarshallError::from)
     }
 
-    fn write_3bits(&mut self, data: impl Into<u3>) -> Result<(), MarshallError> {
-        self.write(data.into().to_u8() as u32, u5::with(3))
+    fn write_3bits(&mut self, data: u3) -> Result<(), MarshallError> {
+        self.write(data.to_u8() as u32, u5::with(3))
             .map_err(MarshallError::from)
     }
 
-    fn write_4bits(&mut self, data: impl Into<u4>) -> Result<(), MarshallError> {
-        self.write(data.into().to_u8() as u32, u5::with(4))
+    fn write_4bits(&mut self, data: u4) -> Result<(), MarshallError> {
+        self.write(data.to_u8() as u32, u5::with(4))
             .map_err(MarshallError::from)
     }
 
-    fn write_5bits(&mut self, data: impl Into<u5>) -> Result<(), MarshallError> {
-        self.write(data.into().to_u8() as u32, u5::with(5))
+    fn write_5bits(&mut self, data: u5) -> Result<(), MarshallError> {
+        self.write(data.to_u8() as u32, u5::with(5))
             .map_err(MarshallError::from)
     }
 
-    fn write_6bits(&mut self, data: impl Into<u6>) -> Result<(), MarshallError> {
-        self.write(data.into().to_u8() as u32, u5::with(6))
+    fn write_6bits(&mut self, data: u6) -> Result<(), MarshallError> {
+        self.write(data.to_u8() as u32, u5::with(6))
             .map_err(MarshallError::from)
     }
 
-    fn write_7bits(&mut self, data: impl Into<u7>) -> Result<(), MarshallError> {
-        self.write(data.into().to_u8() as u32, u5::with(7))
+    fn write_7bits(&mut self, data: u7) -> Result<(), MarshallError> {
+        self.write(data.to_u8() as u32, u5::with(7))
             .map_err(MarshallError::from)
     }
 
