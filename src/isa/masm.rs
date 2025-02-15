@@ -78,13 +78,28 @@ macro_rules! aluasm_inner {
         $code.push(instr!{ $op });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
-    // special type
-    { $code:ident => $op:ident $reg:ident, :$val:ident ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $reg, :$val });
+    // operands are indent followed by a literal
+    { $code:ident => $op:ident $arg:ident, $val:literal ; $($tt:tt)* } => {
+        $code.push(instr!{ $op $arg, $val, });
+        $crate::aluasm_inner! { $code => $( $tt )* }
+    };
+    // operands are all literals
+    { $code:ident => $op:ident $( $arg:literal ),+ ; $($tt:tt)* } => {
+        $code.push(instr!{ $op $( $arg ),+ });
+        $crate::aluasm_inner! { $code => $( $tt )* }
+    };
+    // operands are all idents
+    { $code:ident => $op:ident $( $arg:ident ),+ ; $($tt:tt)* } => {
+        $code.push(instr!{ $op $( $arg ),+ });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
     // operand is an external jump to a named location in library literal
     { $code:ident => $op:ident $arg:literal @ $lib:ident ; $($tt:tt)* } => {
+        $code.push(instr!{ $op $arg @ $lib });
+        $crate::aluasm_inner! { $code => $( $tt )* }
+    };
+    // operand is an external jump to a named location in named library
+    { $code:ident => $op:ident $arg:ident @ $lib:ident ; $($tt:tt)* } => {
         $code.push(instr!{ $op $arg @ $lib });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
@@ -129,24 +144,9 @@ macro_rules! aluasm_inner {
         $code.push(instr!{ $op $arg, - $pos #h });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
-    // operand is an external jump to a named location in named library
-    { $code:ident => $op:ident $arg:ident @ $lib:ident ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg @ $lib });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    // operands are all literals
-    { $code:ident => $op:ident $( $arg:literal ),+ ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $( $arg ),+ });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    // operands are all idents
-    { $code:ident => $op:ident $( $arg:ident ),+ ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $( $arg ),+ });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    // operands are indents followed by literals
-    { $code:ident => $op:ident $( $arg:ident ),+ $( $val:literal ),+ ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $( $arg ),+ $( $val ),+ });
+    // special type
+    { $code:ident => $op:ident $reg:ident, :$val:ident ; $($tt:tt)* } => {
+        $code.push(instr!{ $op $reg, :$val });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
 }
