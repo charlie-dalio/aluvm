@@ -112,7 +112,7 @@ where Self: 'a
 impl<'a> Marshaller<'a, SmallBlob, SmallBlob>
 where Self: 'a
 {
-    #[cfg(test)]
+    #[cfg(any(test, feature = "tests"))]
     pub fn into_code_data(self) -> (SmallBlob, SmallBlob) { (self.bytecode, self.data) }
 }
 
