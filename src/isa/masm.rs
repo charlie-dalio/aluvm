@@ -144,36 +144,9 @@ macro_rules! aluasm_inner {
         $code.push(instr!{ $op $( $arg ),+ });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
-    // operands are all local registries
-    { $code:ident => $op:ident $( $arg:ident : $idx:literal ),+ ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $( $arg : $idx  ),+ });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    // operands are all argument registries
-    { $code:ident => $op:ident $( $arg:ident : $idx:ident ),+ ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $( $arg : $idx  ),+ });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    // operands are all saved registries
-    { $code:ident => $op:ident $( $arg:ident . $idx:ident ),+ ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $( $arg . $idx  ),+ });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    // operands are different types of registries
-    { $code:ident => $op:ident $arg:ident . $idx:literal, $( $args:ident : $idxs:literal ),+ ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg . $idx, $( $args : $idxs  ),+ });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    { $code:ident => $op:ident $arg:ident . $idx:literal, $( $args:ident : $idxs:ident ),+ ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg . $idx, $( $args : $idxs  ),+ });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    { $code:ident => $op:ident $arg:ident : $idx:literal, $( $args:ident . $idxs:ident ),+ ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg : $idx, $( $args . $idxs  ),+ });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    { $code:ident => $op:ident $arg:ident : $idx:ident, $( $args:ident . $idxs:ident ),+ ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg : $idx, $( $args . $idxs  ),+ });
+    // operands are indents followed by literals
+    { $code:ident => $op:ident $( $arg:ident ),+ $( $val:literal ),+ ; $($tt:tt)* } => {
+        $code.push(instr!{ $op $( $arg ),+ $( $val ),+ });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
 }
