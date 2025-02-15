@@ -78,11 +78,6 @@ macro_rules! aluasm_inner {
         $code.push(instr!{ $op });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
-    // operands are indent followed by a literal
-    { $code:ident => $op:ident $arg:ident, $val:literal ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg, $val, });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
     // operands are all literals
     { $code:ident => $op:ident $( $arg:literal ),+ ; $($tt:tt)* } => {
         $code.push(instr!{ $op $( $arg ),+ });
@@ -135,13 +130,18 @@ macro_rules! aluasm_inner {
         $code.push(instr!{ $op $arg, + $pos #h });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
-    // operand is a negative hex  shift
+    // operand is a negative hex shift
     { $code:ident => $op:ident - $pos:literal #h; $($tt:tt)* } => {
         $code.push(instr!{ $op - $pos #h });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
     { $code:ident => $op:ident $arg:ident, - $pos:literal #h; $($tt:tt)* } => {
         $code.push(instr!{ $op $arg, - $pos #h });
+        $crate::aluasm_inner! { $code => $( $tt )* }
+    };
+    // operands are indent followed by a literal
+    { $code:ident => $op:ident $arg:ident, $val:literal ; $($tt:tt)* } => {
+        $code.push(instr!{ $op $arg, $val });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
     // special type
