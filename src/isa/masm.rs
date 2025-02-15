@@ -144,6 +144,11 @@ macro_rules! aluasm_inner {
         $code.push(instr!{ $op $arg, $val });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
+    // operands are indent followed by a hexadecimal literal
+    { $code:ident => $op:ident $arg:ident, $val:literal #h ; $($tt:tt)* } => {
+        $code.push(instr!{ $op $arg, $val #h });
+        $crate::aluasm_inner! { $code => $( $tt )* }
+    };
     // special type
     { $code:ident => $op:ident $reg:ident, :$val:ident ; $($tt:tt)* } => {
         $code.push(instr!{ $op $reg, :$val });
