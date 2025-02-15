@@ -40,11 +40,8 @@
 ///     put     CK, :ok     ;
 ///     chk                 ;
 ///     jif     CO, +2      ;
-///     jif     CO, +2#h    ;
 ///     jif     CK, -2      ;
-///     jif     CK, -2#h    ;
 ///     jmp     +2          ;
-///     jmp     +2#h        ;
 ///     stop                ;
 /// };
 ///
@@ -98,16 +95,6 @@ macro_rules! aluasm_inner {
         $code.push(instr!{ $op $arg @ $lib });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
-    // operand is an external jump to a hex location in library literal
-    { $code:ident => $op:ident $arg:literal @ $lib:literal #h ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg @ $lib #h });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    // operand is an external jump to a hex location in library literal
-    { $code:ident => $op:ident $arg:literal @ $lib:ident #h ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg @ $lib #h });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
     // operand is a positive shift
     { $code:ident => $op:ident + $pos:literal ; $($tt:tt)* } => {
         $code.push(instr!{ $op + $pos });
@@ -126,67 +113,15 @@ macro_rules! aluasm_inner {
         $code.push(instr!{ $op $arg, - $pos });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
-    // operand is a positive hex shift
-    { $code:ident => $op:ident + $pos:ident #h; $($tt:tt)* } => {
-        $code.push(instr!{ $op + $pos #h });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    { $code:ident => $op:ident + $pos:literal #h; $($tt:tt)* } => {
-        $code.push(instr!{ $op + $pos #h });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    { $code:ident => $op:ident $arg:ident, + $pos:ident #h; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg, + $pos #h });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    { $code:ident => $op:ident $arg:ident, + $pos:literal #h; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg, + $pos #h });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    // operand is a negative hex shift
-    { $code:ident => $op:ident - $pos:ident #h; $($tt:tt)* } => {
-        $code.push(instr!{ $op - $pos #h });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    { $code:ident => $op:ident - $pos:literal #h; $($tt:tt)* } => {
-        $code.push(instr!{ $op - $pos #h });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    { $code:ident => $op:ident $arg:ident, - $pos:ident #h; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg, - $pos #h });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    { $code:ident => $op:ident $arg:ident, - $pos:literal #h; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg, - $pos #h });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
     // operands are indent followed by a literal
     { $code:ident => $op:ident $arg:ident, $val:literal ; $($tt:tt)* } => {
         $code.push(instr!{ $op $arg, $val });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    // operands are indent followed by a hexadecimal literal
-    { $code:ident => $op:ident $arg:ident, $val:ident #h ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg, $val #h });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    // operands are indent followed by a hexadecimal literal
-    { $code:ident => $op:ident $arg:ident, $val:literal #h ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg, $val #h });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
     // special type
     { $code:ident => $op:ident $reg:ident, :$val:ident ; $($tt:tt)* } => {
         $code.push(instr!{ $op $reg, :$val });
         $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-}
-
-#[macro_export]
-macro_rules! from_hex {
-    ($ty:ty, $val:literal) => {
-        <$ty>::from_str_radix(&stringify!($val), 16)
-            .unwrap_or_else(|_| panic!("invalid hex literal {}", $val))
     };
 }
 
@@ -219,84 +154,34 @@ macro_rules! instr {
     (jmp $pos:literal) => {
         $crate::isa::CtrlInstr::Jmp { pos: $pos }.into()
     };
-    (jmp $pos:literal #h) => {
-        $crate::isa::CtrlInstr::Jmp { pos: $crate::from_hex!(u16, $pos) }.into()
-    };
 
     (jif CO, + $shift:literal) => {
         $crate::isa::CtrlInstr::ShNe { shift: $shift }.into()
     };
-    (jif CO, + $shift:literal #h) => {
-        $crate::isa::CtrlInstr::ShNe { shift: $crate::from_hex!(i8, $shift) }.into()
-    };
-    (jif CO, + $shift:ident #h) => {
-        $crate::isa::CtrlInstr::ShNe { shift: $crate::from_hex!(i8, $shift) }.into()
-    };
     (jif CK, - $shift:literal) => {
         $crate::isa::CtrlInstr::ShFail { shift: $shift }.into()
-    };
-    (jif CK, - $shift:literal #h) => {
-        $crate::isa::CtrlInstr::ShFail { shift: $crate::from_hex!(i8, $shift) }.into()
-    };
-    (jif CK, - $shift:ident #h) => {
-        $crate::isa::CtrlInstr::ShFail { shift: $crate::from_hex!(i8, $shift) }.into()
     };
     (jif CO, $pos:literal) => {
         $crate::isa::CtrlInstr::JiNe { pos: $pos }.into()
     };
-    (jif CO, $pos:literal #h) => {
-        $crate::isa::CtrlInstr::JiNe { pos: $crate::from_hex!(u16, $pos) }.into()
-    };
-    (jif CO, $pos:ident #h) => {
-        $crate::isa::CtrlInstr::JiNe { pos: $crate::from_hex!(u16, $pos) }.into()
-    };
     (jif CK, $pos:literal) => {
         $crate::isa::CtrlInstr::JiFail { pos: $pos }.into()
-    };
-    (jif CK, $pos:literal #h) => {
-        $crate::isa::CtrlInstr::JiFail { pos: $crate::from_hex!(u16, $pos) }.into()
-    };
-    (jif CK, $pos:ident #h) => {
-        $crate::isa::CtrlInstr::JiFail { pos: $crate::from_hex!(u16, $pos) }.into()
     };
     (jmp + $shift:literal) => {
         $crate::isa::CtrlInstr::Sh { shift: $shift }.into()
     };
-    (jmp + $shift:literal #h) => {
-        $crate::isa::CtrlInstr::Sh { shift: $crate::from_hex!(i8, $shift) }.into()
-    };
-    (jmp + $shift:ident #h) => {
-        $crate::isa::CtrlInstr::Sh { shift: $crate::from_hex!(i8, $shift) }.into()
-    };
     (jmp - $shift:literal) => {
         $crate::isa::CtrlInstr::Sh { shift: $shift }.into()
-    };
-    (jmp - $shift:literal #h) => {
-        $crate::isa::CtrlInstr::Sh { shift: $crate::from_hex!(i8, $shift) }.into()
-    };
-    (jmp - $shift:ident #h) => {
-        $crate::isa::CtrlInstr::Sh { shift: $crate::from_hex!(i8, $shift) }.into()
     };
 
     // Calls
     (jmp $lib:ident @ $pos:literal) => {
         $crate::isa::CtrlInstr::Exec { site: $crate::Site::new($lib, $pos) }.into()
     };
-    (jmp $lib:ident @ $pos:literal #h) => {
-        $crate::isa::CtrlInstr::Exec { site: $crate::Site::new($lib, $crate::from_hex!(u16, $pos)) }
-            .into()
-    };
     (call $lib:ident @ $pos:literal) => {
         $crate::isa::CtrlInstr::Call { site: $crate::Site::new($lib, $pos) }.into()
     };
-    (call $lib:ident @ $pos:literal #h) => {
-        $crate::isa::CtrlInstr::Call { site: $crate::Site::new($lib, $crate::from_hex!(u16, $pos)) }
-            .into()
-    };
     (call $pos:literal) => {
         $crate::isa::CtrlInstr::Fn { pos: $pos }.into()
-    };
-    (call $pos:literal #h) => {
-        $crate::isa::CtrlInstr::Fn { pos: from_hex!(u16, $pos) }.into()
     };
 }
