@@ -27,8 +27,6 @@
 /// # Example
 ///
 /// ```
-/// extern crate alloc;
-///
 /// use aluvm::isa::Instr;
 /// use aluvm::regs::Status;
 /// use aluvm::{aluasm, Lib, LibId, LibSite, Vm};
@@ -56,8 +54,10 @@
 macro_rules! aluasm {
     ($( $tt:tt )+) => {{
         use $crate::instr;
+        #[cfg(not(feature = "std"))]
+        use alloc::vec::Vec;
 
-        let mut code: alloc::vec::Vec<$crate::isa::Instr<$crate::LibId>> = Default::default();
+        let mut code: Vec<$crate::isa::Instr<$crate::LibId>> = Default::default();
         #[allow(unreachable_code)] {
             $crate::aluasm_inner! { code => $( $tt )+ }
         }
