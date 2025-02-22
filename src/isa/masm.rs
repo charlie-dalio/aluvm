@@ -118,7 +118,11 @@ macro_rules! aluasm_inner {
         $code.push(instr!{ $op $arg, $val });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
-    // special type
+    // special types
+    { $code:ident => $op:ident :$val:ident ; $($tt:tt)* } => {
+        $code.push(instr!{ $op :$val });
+        $crate::aluasm_inner! { $code => $( $tt )* }
+    };
     { $code:ident => $op:ident $reg:ident, :$val:ident ; $($tt:tt)* } => {
         $code.push(instr!{ $op $reg, :$val });
         $crate::aluasm_inner! { $code => $( $tt )* }
