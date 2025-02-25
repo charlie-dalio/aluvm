@@ -78,7 +78,7 @@ impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Core<Id, Cx, CALL_ST
     ///
     /// # Returns
     ///
-    /// Boolean indicating wheather complexity limit is reached.
+    /// Boolean indicating whether complexity limit is reached.
     pub fn acc_complexity(&mut self, complexity: u64) -> bool {
         self.ca = self.ca.saturating_add(complexity);
         self.cl().map(|lim| self.ca >= lim).unwrap_or_default()
