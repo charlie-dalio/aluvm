@@ -127,6 +127,10 @@ macro_rules! aluasm_inner {
         $code.push(instr!{ $op $reg, :$val });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
+    { $code:ident => $op:ident $reg:ident, $val:literal : $ty:ident ; $($tt:tt)* } => {
+        $code.push(instr!{ $op $reg, $val:$ty });
+        $crate::aluasm_inner! { $code => $( $tt )* }
+    };
 }
 
 #[doc(hidden)]
