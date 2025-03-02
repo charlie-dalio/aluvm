@@ -36,7 +36,7 @@
 ///     not     CO          ;
 ///     fail    CK          ;
 ///     mov     CO, CK      ;
-///     chk                 ;
+///     chk     CO          ;
 ///     jif     CO, +2      ;
 ///     jif     CK, -2      ;
 ///     jmp     +2          ;
@@ -139,7 +139,10 @@ macro_rules! instr {
     (nop) => {
         $crate::isa::CtrlInstr::Nop.into()
     };
-    (chk) => {
+    (chk CO) => {
+        $crate::isa::CtrlInstr::ChkCo.into()
+    };
+    (chk CK) => {
         $crate::isa::CtrlInstr::ChkCk.into()
     };
     (not CO) => {
