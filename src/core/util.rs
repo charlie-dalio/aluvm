@@ -103,11 +103,11 @@ impl CoreExt for NoExt {
 
     fn with(_config: Self::Config) -> Self { NoExt }
 
-    fn get(&self, _reg: Self::Reg) -> Option<u8> { None }
+    fn get(&self, _reg: Self::Reg) -> Option<u8> { unreachable!() }
 
-    fn clr(&mut self, _reg: Self::Reg) -> Option<u8> { None }
+    fn clr(&mut self, _reg: Self::Reg) { unreachable!() }
 
-    fn set(&mut self, _reg: Self::Reg, _val: u8) -> Option<u8> { None }
+    fn put(&mut self, _reg: Self::Reg, _val: Option<u8>) { unreachable!() }
 
     fn reset(&mut self) {}
 }
