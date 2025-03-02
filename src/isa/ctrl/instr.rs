@@ -33,20 +33,24 @@ pub enum CtrlInstr<Id: SiteId> {
     #[display("nop")]
     Nop,
 
+    /// Test `CO` value, terminates if set to true.
+    #[display("chk     CO")]
+    ChkCo,
+
     /// Test `CK` value, terminates if in failed state.
-    #[display("chk")]
-    Chk,
+    #[display("chk     CK")]
+    ChkCk,
 
     /// Invert `CO` register.
     #[display("not     CO")]
     NotCo,
 
     /// Set `CK` register to a failed state.
-    #[display("put     CK, :fail")]
+    #[display("fail    CK")]
     FailCk,
 
-    /// Reset `CK` register.
-    #[display("put     CK, :ok")]
+    ///  Assigns `CK` value to `CO` resister and sets `CK` to a non-failed state.
+    #[display("mov     CO, CK")]
     RsetCk,
 
     /// Jump to location (unconditionally).
@@ -55,9 +59,9 @@ pub enum CtrlInstr<Id: SiteId> {
 
     /// Jump to location if `CO` is true.
     #[display("jif     CO, {pos:04X}#h")]
-    JiNe { pos: u16 },
+    JiOvfl { pos: u16 },
 
-    /// Jump to location if `ck` is in a failed state.
+    /// Jump to location if `CK` is in a failed state.
     #[display("jif     CK, {pos:04X}#h")]
     JiFail { pos: u16 },
 
@@ -67,7 +71,7 @@ pub enum CtrlInstr<Id: SiteId> {
 
     /// Relative jump if `CO` is true.
     #[display("jif     CO, {shift:+03X}#h")]
-    ShNe { shift: i8 },
+    ShOvfl { shift: i8 },
 
     /// Relative jump if `CK` is in a failed state.
     #[display("jif     CK, {shift:+03X}#h")]

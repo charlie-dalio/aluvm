@@ -114,12 +114,13 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
     fn op_data_bytes(&self) -> u16 {
         match self {
             CtrlInstr::Nop
-            | CtrlInstr::Chk
+            | CtrlInstr::ChkCo
+            | CtrlInstr::ChkCk
             | CtrlInstr::NotCo
             | CtrlInstr::FailCk
             | CtrlInstr::RsetCk => 0,
-            CtrlInstr::Jmp { .. } | CtrlInstr::JiNe { .. } | CtrlInstr::JiFail { .. } => 2,
-            CtrlInstr::Sh { .. } | CtrlInstr::ShNe { .. } | CtrlInstr::ShFail { .. } => 1,
+            CtrlInstr::Jmp { .. } | CtrlInstr::JiOvfl { .. } | CtrlInstr::JiFail { .. } => 2,
+            CtrlInstr::Sh { .. } | CtrlInstr::ShOvfl { .. } | CtrlInstr::ShFail { .. } => 1,
             CtrlInstr::Exec { .. } => 2,
             CtrlInstr::Fn { .. } => 2,
             CtrlInstr::Call { .. } => 2,
@@ -130,12 +131,13 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
     fn ext_data_bytes(&self) -> u16 {
         match self {
             CtrlInstr::Nop
-            | CtrlInstr::Chk
+            | CtrlInstr::ChkCo
+            | CtrlInstr::ChkCk
             | CtrlInstr::NotCo
             | CtrlInstr::FailCk
             | CtrlInstr::RsetCk => 0,
-            CtrlInstr::Jmp { .. } | CtrlInstr::JiNe { .. } | CtrlInstr::JiFail { .. } => 0,
-            CtrlInstr::Sh { .. } | CtrlInstr::ShNe { .. } | CtrlInstr::ShFail { .. } => 0,
+            CtrlInstr::Jmp { .. } | CtrlInstr::JiOvfl { .. } | CtrlInstr::JiFail { .. } => 0,
+            CtrlInstr::Sh { .. } | CtrlInstr::ShOvfl { .. } | CtrlInstr::ShFail { .. } => 0,
             CtrlInstr::Exec { .. } => 32,
             CtrlInstr::Fn { .. } => 0,
             CtrlInstr::Call { .. } => 32,
@@ -158,8 +160,13 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
 
         match *self {
             CtrlInstr::Nop => {}
-            CtrlInstr::Chk => {
-                if core.ck() == Status::Fail {
+            CtrlInstr::ChkCo => {
+                if !core.co().is_ok() {
+                    return ExecStep::FailHalt;
+                }
+            }
+            CtrlInstr::ChkCk => {
+                if !core.ck().is_ok() {
                     return ExecStep::Stop;
                 }
             }
@@ -169,13 +176,13 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
                 }
             }
             CtrlInstr::RsetCk => {
-                core.set_co(core.ck() == Status::Fail);
+                core.set_co(core.ck());
                 core.reset_ck()
             }
             CtrlInstr::NotCo => core.set_co(!core.co()),
             CtrlInstr::Jmp { pos } => return ExecStep::Jump(pos),
-            CtrlInstr::JiNe { pos } => {
-                if core.co() {
+            CtrlInstr::JiOvfl { pos } => {
+                if core.co() == Status::Fail {
                     return ExecStep::Jump(pos);
                 }
             }
@@ -187,8 +194,8 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
             CtrlInstr::Sh { shift } => {
                 return shift_jump(shift);
             }
-            CtrlInstr::ShNe { shift } => {
-                if core.co() {
+            CtrlInstr::ShOvfl { shift } => {
+                if core.co() == Status::Fail {
                     return shift_jump(shift);
                 }
             }

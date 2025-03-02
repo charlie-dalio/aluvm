@@ -22,9 +22,10 @@
 // or implied. See the License for the specific language governing permissions and limitations under
 // the License.
 
+use core::cmp::Ordering;
 use core::fmt::{self, Debug, Display, Formatter};
+use core::ops::Not;
 use core::str::FromStr;
-use std::cmp::Ordering;
 
 use crate::core::CoreExt;
 
@@ -72,6 +73,17 @@ pub enum Status {
 
 impl Status {
     pub fn is_ok(self) -> bool { self == Status::Ok }
+}
+
+impl Not for Status {
+    type Output = Status;
+
+    fn not(self) -> Self::Output {
+        match self {
+            Status::Ok => Status::Fail,
+            Status::Fail => Status::Ok,
+        }
+    }
 }
 
 pub trait SiteId: Copy + Ord + Debug + Display + FromStr {}

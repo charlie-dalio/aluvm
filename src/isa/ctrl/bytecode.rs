@@ -87,20 +87,21 @@ impl<Id: SiteId> CtrlInstr<Id> {
 
     const NOP: u8 = 0;
     const NOCO: u8 = 1;
-    const CHK: u8 = 2;
-    const FAIL: u8 = 3;
-    const RSET: u8 = 4;
-    const JMP: u8 = 5;
-    const JINE: u8 = 6;
-    const JIFAIL: u8 = 7;
-    const SH: u8 = 8;
-    const SHNE: u8 = 9;
-    const SHFAIL: u8 = 10;
-    const EXEC: u8 = 11;
-    const FN: u8 = 12;
-    const CALL: u8 = 13;
-    const RET: u8 = 14;
-    const STOP: u8 = 15;
+    const CHCO: u8 = 2;
+    const CHCK: u8 = 3;
+    const FAIL: u8 = 4;
+    const RSET: u8 = 5;
+    const JMP: u8 = 6;
+    const JINE: u8 = 7;
+    const JIFAIL: u8 = 8;
+    const SH: u8 = 9;
+    const SHNE: u8 = 10;
+    const SHFAIL: u8 = 11;
+    const EXEC: u8 = 12;
+    const FN: u8 = 13;
+    const CALL: u8 = 14;
+    const RET: u8 = 15;
+    const STOP: u8 = 16;
 }
 
 impl<Id: SiteId> Bytecode<Id> for CtrlInstr<Id> {
@@ -109,15 +110,16 @@ impl<Id: SiteId> Bytecode<Id> for CtrlInstr<Id> {
     fn opcode_byte(&self) -> u8 {
         match self {
             CtrlInstr::Nop => Self::NOP,
-            CtrlInstr::Chk => Self::CHK,
+            CtrlInstr::ChkCo => Self::CHCO,
+            CtrlInstr::ChkCk => Self::CHCK,
             CtrlInstr::NotCo => Self::NOCO,
             CtrlInstr::FailCk => Self::FAIL,
             CtrlInstr::RsetCk => Self::RSET,
             CtrlInstr::Jmp { .. } => Self::JMP,
-            CtrlInstr::JiNe { .. } => Self::JINE,
+            CtrlInstr::JiOvfl { .. } => Self::JINE,
             CtrlInstr::JiFail { .. } => Self::JIFAIL,
             CtrlInstr::Sh { .. } => Self::SH,
-            CtrlInstr::ShNe { .. } => Self::SHNE,
+            CtrlInstr::ShOvfl { .. } => Self::SHNE,
             CtrlInstr::ShFail { .. } => Self::SHFAIL,
             CtrlInstr::Exec { .. } => Self::EXEC,
             CtrlInstr::Fn { .. } => Self::FN,
@@ -131,7 +133,8 @@ impl<Id: SiteId> Bytecode<Id> for CtrlInstr<Id> {
     where W: BytecodeWrite<Id> {
         match *self {
             CtrlInstr::Nop
-            | CtrlInstr::Chk
+            | CtrlInstr::ChkCo
+            | CtrlInstr::ChkCk
             | CtrlInstr::FailCk
             | CtrlInstr::RsetCk
             | CtrlInstr::NotCo
@@ -139,10 +142,10 @@ impl<Id: SiteId> Bytecode<Id> for CtrlInstr<Id> {
             | CtrlInstr::Stop => {}
 
             CtrlInstr::Jmp { pos }
-            | CtrlInstr::JiNe { pos }
+            | CtrlInstr::JiOvfl { pos }
             | CtrlInstr::JiFail { pos }
             | CtrlInstr::Fn { pos } => writer.write_word(pos)?,
-            CtrlInstr::Sh { shift } | CtrlInstr::ShNe { shift } | CtrlInstr::ShFail { shift } => {
+            CtrlInstr::Sh { shift } | CtrlInstr::ShOvfl { shift } | CtrlInstr::ShFail { shift } => {
                 writer.write_byte(shift.to_le_bytes()[0])?
             }
             CtrlInstr::Call { site } | CtrlInstr::Exec { site } => {
@@ -161,7 +164,7 @@ impl<Id: SiteId> Bytecode<Id> for CtrlInstr<Id> {
     {
         Ok(match opcode {
             Self::NOP => Self::Nop,
-            Self::CHK => Self::Chk,
+            Self::CHCK => Self::ChkCk,
             Self::FAIL => Self::FailCk,
             Self::RSET => Self::RsetCk,
             Self::NOCO => Self::NotCo,
@@ -169,12 +172,12 @@ impl<Id: SiteId> Bytecode<Id> for CtrlInstr<Id> {
             Self::STOP => Self::Stop,
 
             Self::JMP => CtrlInstr::Jmp { pos: reader.read_word()? },
-            Self::JINE => CtrlInstr::JiNe { pos: reader.read_word()? },
+            Self::JINE => CtrlInstr::JiOvfl { pos: reader.read_word()? },
             Self::JIFAIL => CtrlInstr::JiFail { pos: reader.read_word()? },
             Self::FN => CtrlInstr::Fn { pos: reader.read_word()? },
 
             Self::SH => CtrlInstr::Sh { shift: i8::from_le_bytes([reader.read_byte()?]) },
-            Self::SHNE => CtrlInstr::ShNe { shift: i8::from_le_bytes([reader.read_byte()?]) },
+            Self::SHNE => CtrlInstr::ShOvfl { shift: i8::from_le_bytes([reader.read_byte()?]) },
             Self::SHFAIL => CtrlInstr::ShFail { shift: i8::from_le_bytes([reader.read_byte()?]) },
 
             Self::CALL => {
@@ -223,7 +226,7 @@ mod test {
     #[test]
     fn nop() { roundtrip(CtrlInstr::Nop, [CtrlInstr::<LibId>::NOP]); }
     #[test]
-    fn chk() { roundtrip(CtrlInstr::Chk, [CtrlInstr::<LibId>::CHK]); }
+    fn chk() { roundtrip(CtrlInstr::ChkCk, [CtrlInstr::<LibId>::CHCK]); }
     #[test]
     fn not_co() { roundtrip(CtrlInstr::NotCo, [CtrlInstr::<LibId>::NOCO]); }
     #[test]
@@ -235,7 +238,7 @@ mod test {
     fn jmp() { roundtrip(CtrlInstr::Jmp { pos: 0x75AE }, [CtrlInstr::<LibId>::JMP, 0xAE, 0x75]); }
     #[test]
     fn jine() {
-        roundtrip(CtrlInstr::JiNe { pos: 0x75AE }, [CtrlInstr::<LibId>::JINE, 0xAE, 0x75]);
+        roundtrip(CtrlInstr::JiOvfl { pos: 0x75AE }, [CtrlInstr::<LibId>::JINE, 0xAE, 0x75]);
     }
     #[test]
     fn jifail() {
@@ -246,7 +249,7 @@ mod test {
     fn sh() { roundtrip(CtrlInstr::Sh { shift: -0x5 }, [CtrlInstr::<LibId>::SH, 255 - 5 + 1]); }
     #[test]
     fn shne() {
-        roundtrip(CtrlInstr::ShNe { shift: -0x5 }, [CtrlInstr::<LibId>::SHNE, 255 - 5 + 1]);
+        roundtrip(CtrlInstr::ShOvfl { shift: -0x5 }, [CtrlInstr::<LibId>::SHNE, 255 - 5 + 1]);
     }
     #[test]
     fn shfail() {

@@ -34,8 +34,8 @@
 /// let code = aluasm! {
 ///     nop                 ;
 ///     not     CO          ;
-///     put     CK, :fail   ;
-///     put     CK, :ok     ;
+///     fail    CK          ;
+///     mov     CO, CK      ;
 ///     chk                 ;
 ///     jif     CO, +2      ;
 ///     jif     CK, -2      ;
@@ -136,15 +136,15 @@ macro_rules! instr {
         $crate::isa::CtrlInstr::Nop.into()
     };
     (chk) => {
-        $crate::isa::CtrlInstr::Chk.into()
+        $crate::isa::CtrlInstr::ChkCk.into()
     };
     (not CO) => {
         $crate::isa::CtrlInstr::NotCo.into()
     };
-    (put CK, : fail) => {
+    (fail CK) => {
         $crate::isa::CtrlInstr::FailCk.into()
     };
-    (put CK, : ok) => {
+    (mov CO,CK) => {
         $crate::isa::CtrlInstr::RsetCk.into()
     };
     (ret) => {
@@ -160,13 +160,13 @@ macro_rules! instr {
     };
 
     (jif CO, + $shift:literal) => {
-        $crate::isa::CtrlInstr::ShNe { shift: $shift }.into()
+        $crate::isa::CtrlInstr::ShOvfl { shift: $shift }.into()
     };
     (jif CK, - $shift:literal) => {
         $crate::isa::CtrlInstr::ShFail { shift: $shift }.into()
     };
     (jif CO, $pos:literal) => {
-        $crate::isa::CtrlInstr::JiNe { pos: $pos }.into()
+        $crate::isa::CtrlInstr::JiOvfl { pos: $pos }.into()
     };
     (jif CK, $pos:literal) => {
         $crate::isa::CtrlInstr::JiFail { pos: $pos }.into()

@@ -28,10 +28,10 @@ use crate::{Register, Site};
 /// Microcode for flag registers.
 impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Core<Id, Cx, CALL_STACK_SIZE> {
     /// Read overflow/carry flag.
-    pub fn co(&self) -> bool { self.co }
+    pub fn co(&self) -> Status { self.co }
 
     /// Set overflow/carry flag to a value.
-    pub fn set_co(&mut self, co: bool) { self.co = co; }
+    pub fn set_co(&mut self, co: Status) { self.co = co; }
 
     /// Return how many times `ck` was set to a failed state.
     pub fn cf(&self) -> u64 { self.cf }

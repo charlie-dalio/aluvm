@@ -84,7 +84,7 @@ pub struct Core<
     pub(super) cf: u64,
 
     /// Test register, which acts as boolean test result (also a carry flag).
-    pub(super) co: bool,
+    pub(super) co: Status,
 
     /// Counts number of jumps (possible cycles). The number of jumps is limited by 2^16 per
     /// script.
@@ -167,7 +167,7 @@ impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Core<Id, Cx, CALL_ST
             ch: config.halt,
             ck: Status::Ok,
             cf: 0,
-            co: false,
+            co: Status::Ok,
             cy: 0,
             ca: 0,
             cl: config.complexity_lim,
