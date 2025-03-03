@@ -113,8 +113,9 @@ impl Lib {
             }
 
             if !registers.acc_complexity(instr.complexity()) {
+                let _ = registers.fail_ck();
                 #[cfg(feature = "log")]
-                eprintln!("complexity overflow");
+                eprintln!("halting, complexity overflow");
                 return None;
             }
             match next {
