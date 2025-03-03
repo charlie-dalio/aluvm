@@ -163,7 +163,10 @@ pub mod regs {
 pub use isa::{ExecStep, IsaId, ISA_ID_MAX_LEN};
 #[cfg(feature = "armor")]
 pub use library::armor::LibArmorError;
-pub use library::{Lib, LibId, LibSite, LibsSeg, MarshallError, Marshaller};
+pub use library::{
+    AssemblerError, CompiledLib, CompilerError, Lib, LibId, LibSite, LibsSeg, MarshallError,
+    Marshaller,
+};
 #[doc(hidden)]
 pub use paste::paste;
 pub use vm::Vm;

@@ -26,8 +26,11 @@ mod lib;
 #[cfg(feature = "armor")]
 pub mod armor;
 mod assembler;
+mod compiler;
 mod marshaller;
 mod exec;
 
+pub use assembler::AssemblerError;
+pub use compiler::{CompiledLib, CompilerError};
 pub use lib::{Lib, LibId, LibSite, LibsSeg};
 pub use marshaller::{MarshallError, Marshaller};
