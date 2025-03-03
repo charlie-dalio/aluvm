@@ -81,7 +81,7 @@ impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Core<Id, Cx, CALL_ST
     /// Boolean indicating whether complexity limit is reached.
     pub fn acc_complexity(&mut self, complexity: u64) -> bool {
         self.ca = self.ca.saturating_add(complexity);
-        self.cl().map(|lim| self.ca >= lim).unwrap_or_default()
+        self.cl().map(|lim| self.ca >= lim).unwrap_or(true)
     }
 
     pub fn get(&self, reg: Cx::Reg) -> Option<<Cx::Reg as Register>::Value> { self.cx.get(reg) }
