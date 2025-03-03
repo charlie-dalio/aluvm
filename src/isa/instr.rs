@@ -54,7 +54,7 @@ pub enum ExecStep<Site> {
 }
 
 /// Trait for instructions
-pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> {
+pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Eq {
     const ISA_EXT: &'static [&'static str];
 
     type Core: CoreExt;
@@ -65,6 +65,10 @@ pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> {
         let iter = Self::ISA_EXT.iter().copied().map(IsaId::from);
         TinyOrdSet::from_iter_checked(iter)
     }
+
+    fn is_local_goto_target(&self) -> bool;
+
+    fn local_goto_pos(&mut self) -> Option<&mut u16>;
 
     /// Lists all registers which are used by the instruction.
     fn regs(&self) -> BTreeSet<<Self::Core as CoreExt>::Reg> {

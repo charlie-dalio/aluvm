@@ -34,6 +34,20 @@ impl<Id: SiteId> Instruction<Id> for Instr<Id> {
     type Core = NoExt;
     type Context<'ctx> = ();
 
+    fn is_local_goto_target(&self) -> bool {
+        match self {
+            Instr::Ctrl(instr) => instr.is_local_goto_target(),
+            Instr::Reserved(instr) => Instruction::<Id>::is_local_goto_target(instr),
+        }
+    }
+
+    fn local_goto_pos(&mut self) -> Option<&mut u16> {
+        match self {
+            Instr::Ctrl(instr) => instr.local_goto_pos(),
+            Instr::Reserved(instr) => Instruction::<Id>::local_goto_pos(instr),
+        }
+    }
+
     fn src_regs(&self) -> BTreeSet<NoRegs> {
         match self {
             Instr::Ctrl(instr) => instr.src_regs(),
@@ -81,6 +95,10 @@ impl<Id: SiteId> Instruction<Id> for ReservedInstr {
     type Core = NoExt;
     type Context<'ctx> = ();
 
+    fn is_local_goto_target(&self) -> bool { false }
+
+    fn local_goto_pos(&mut self) -> Option<&mut u16> { None }
+
     fn src_regs(&self) -> BTreeSet<NoRegs> { none!() }
 
     fn dst_regs(&self) -> BTreeSet<NoRegs> { none!() }
@@ -106,6 +124,41 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
 
     type Core = NoExt;
     type Context<'ctx> = ();
+
+    fn is_local_goto_target(&self) -> bool {
+        match self {
+            CtrlInstr::Nop
+            | CtrlInstr::ChkCo
+            | CtrlInstr::ChkCk
+            | CtrlInstr::NotCo
+            | CtrlInstr::FailCk
+            | CtrlInstr::RsetCk => false,
+            CtrlInstr::Jmp { .. } | CtrlInstr::JiOvfl { .. } | CtrlInstr::JiFail { .. } => true,
+            CtrlInstr::Sh { .. } | CtrlInstr::ShOvfl { .. } | CtrlInstr::ShFail { .. } => false,
+            CtrlInstr::Exec { .. } | CtrlInstr::Fn { .. } | CtrlInstr::Call { .. } => false,
+            CtrlInstr::Ret | CtrlInstr::Stop => false,
+        }
+    }
+
+    fn local_goto_pos(&mut self) -> Option<&mut u16> {
+        match self {
+            CtrlInstr::Nop
+            | CtrlInstr::ChkCo
+            | CtrlInstr::ChkCk
+            | CtrlInstr::NotCo
+            | CtrlInstr::FailCk
+            | CtrlInstr::RsetCk => None,
+            CtrlInstr::Jmp { pos }
+            | CtrlInstr::JiOvfl { pos }
+            | CtrlInstr::JiFail { pos }
+            | CtrlInstr::Fn { pos } => Some(pos),
+            CtrlInstr::Sh { shift: _ }
+            | CtrlInstr::ShOvfl { shift: _ }
+            | CtrlInstr::ShFail { shift: _ } => None,
+            CtrlInstr::Exec { site: _ } | CtrlInstr::Call { site: _ } => None,
+            CtrlInstr::Ret | CtrlInstr::Stop => None,
+        }
+    }
 
     fn src_regs(&self) -> BTreeSet<NoRegs> { none!() }
 

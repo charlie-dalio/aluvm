@@ -27,6 +27,13 @@ use amplify::confinement::{self, TinyOrdSet};
 use super::{Lib, LibId, MarshallError, Marshaller};
 use crate::isa::{BytecodeRead, CodeEofError, Instruction};
 
+#[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Display, Error, From)]
+#[display(inner)]
+pub enum CompilerError {
+    #[from]
+    Assemble(AssemblerError),
+}
+
 /// Errors while assembling lib-old from the instruction set.
 #[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Display, Error, From)]
 #[display(inner)]
@@ -41,6 +48,28 @@ pub enum AssemblerError {
 }
 
 impl Lib {
+    /// Compiles library from the provided instructions by resolving local call pointers first, and
+    /// then assembling it into a bytecode by calling [`Self::assemble`].
+    pub fn compile<Isa>(mut code: impl AsMut<[Isa]>) -> Result<Lib, CompilerError>
+    where Isa: Instruction<LibId> {
+        let code = code.as_mut();
+        let mut routines = vec![];
+        let mut cursor = 0u16;
+        for instr in &*code {
+            if instr.is_local_goto_target() {
+                routines.push(cursor);
+            }
+            cursor += instr.code_byte_len();
+        }
+        for instr in &mut *code {
+            if let Some(goto_pos) = instr.local_goto_pos() {
+                *goto_pos = routines[*goto_pos as usize];
+            }
+        }
+        let lib = Self::assemble(code)?;
+        Ok(lib)
+    }
+
     /// Assembles library from the provided instructions by encoding them into bytecode.
     pub fn assemble<Isa>(code: &[Isa]) -> Result<Lib, AssemblerError>
     where Isa: Instruction<LibId> {
