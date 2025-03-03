@@ -127,13 +127,13 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
 
     fn is_local_goto_target(&self) -> bool {
         match self {
-            CtrlInstr::Nop
-            | CtrlInstr::ChkCo
+            CtrlInstr::Nop => true,
+            CtrlInstr::ChkCo
             | CtrlInstr::ChkCk
             | CtrlInstr::NotCo
             | CtrlInstr::FailCk
             | CtrlInstr::RsetCk => false,
-            CtrlInstr::Jmp { .. } | CtrlInstr::JiOvfl { .. } | CtrlInstr::JiFail { .. } => true,
+            CtrlInstr::Jmp { .. } | CtrlInstr::JiOvfl { .. } | CtrlInstr::JiFail { .. } => false,
             CtrlInstr::Sh { .. } | CtrlInstr::ShOvfl { .. } | CtrlInstr::ShFail { .. } => false,
             CtrlInstr::Exec { .. } | CtrlInstr::Fn { .. } | CtrlInstr::Call { .. } => false,
             CtrlInstr::Ret | CtrlInstr::Stop => false,
