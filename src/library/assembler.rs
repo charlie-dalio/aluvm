@@ -27,11 +27,18 @@ use amplify::confinement::{self, TinyOrdSet};
 use super::{Lib, LibId, MarshallError, Marshaller};
 use crate::isa::{BytecodeRead, CodeEofError, Instruction};
 
-#[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Display, Error, From)]
-#[display(inner)]
-pub enum CompilerError {
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Display, Error, From)]
+#[display(doc_comments)]
+pub enum CompilerError<Isa: Instruction<LibId>> {
     #[from]
+    #[display(inner)]
     Assemble(AssemblerError),
+
+    /// instruction number {1} `{0}` (offset {2:#x}) references goto target absent in the code. Use
+    /// `nop` instruction to mark the goto target.
+    ///
+    /// The known goto target offsets are: {3:#x?}
+    InvalidRef(Isa, usize, u16, Vec<u16>),
 }
 
 /// Errors while assembling lib-old from the instruction set.
@@ -50,7 +57,7 @@ pub enum AssemblerError {
 impl Lib {
     /// Compiles library from the provided instructions by resolving local call pointers first, and
     /// then assembling it into a bytecode by calling [`Self::assemble`].
-    pub fn compile<Isa>(mut code: impl AsMut<[Isa]>) -> Result<Lib, CompilerError>
+    pub fn compile<Isa>(mut code: impl AsMut<[Isa]>) -> Result<Lib, CompilerError<Isa>>
     where Isa: Instruction<LibId> {
         let code = code.as_mut();
         let mut routines = vec![];
@@ -61,10 +68,17 @@ impl Lib {
             }
             cursor += instr.code_byte_len();
         }
-        for instr in &mut *code {
-            if let Some(goto_pos) = instr.local_goto_pos() {
-                *goto_pos = routines[*goto_pos as usize];
-            }
+        let mut cursor = 0u16;
+        for (no, instr) in code.iter_mut().enumerate() {
+            let Some(goto_pos) = instr.local_goto_pos() else {
+                cursor += instr.code_byte_len();
+                continue;
+            };
+            let Some(pos) = routines.get(*goto_pos as usize) else {
+                return Err(CompilerError::InvalidRef(instr.clone(), no, cursor, routines));
+            };
+            *goto_pos = *pos;
+            cursor += instr.code_byte_len();
         }
         let lib = Self::assemble(code)?;
         Ok(lib)

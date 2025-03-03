@@ -54,7 +54,7 @@ pub enum ExecStep<Site> {
 }
 
 /// Trait for instructions
-pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Eq {
+pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Clone + Eq {
     const ISA_EXT: &'static [&'static str];
 
     type Core: CoreExt;
