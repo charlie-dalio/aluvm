@@ -31,6 +31,8 @@
 /// use aluvm::regs::Status;
 /// use aluvm::{aluasm, Lib, LibId, LibSite, Vm};
 ///
+/// const START: u16 = 0;
+///
 /// let code = aluasm! {
 ///     nop                 ;
 ///     not     CO          ;
@@ -40,6 +42,7 @@
 ///     jif     CO, +2      ;
 ///     jif     CK, -2      ;
 ///     jmp     +2          ;
+///     call    :START      ;
 ///     stop                ;
 /// };
 ///
@@ -165,6 +168,9 @@ macro_rules! instr {
     (jmp $pos:literal) => {
         $crate::isa::CtrlInstr::Jmp { pos: $pos }.into()
     };
+    (jmp: $pos:ident) => {
+        $crate::isa::CtrlInstr::Jmp { pos: $pos }.into()
+    };
 
     (jif CO, + $shift:literal) => {
         $crate::isa::CtrlInstr::ShOvfl { shift: $shift }.into()
@@ -176,6 +182,12 @@ macro_rules! instr {
         $crate::isa::CtrlInstr::JiOvfl { pos: $pos }.into()
     };
     (jif CK, $pos:literal) => {
+        $crate::isa::CtrlInstr::JiFail { pos: $pos }.into()
+    };
+    (jif CO, : $pos:ident) => {
+        $crate::isa::CtrlInstr::JiOvfl { pos: $pos }.into()
+    };
+    (jif CK, : $pos:ident) => {
         $crate::isa::CtrlInstr::JiFail { pos: $pos }.into()
     };
     (jmp + $shift:literal) => {
@@ -193,6 +205,9 @@ macro_rules! instr {
         $crate::isa::CtrlInstr::Call { site: $crate::Site::new($lib, $pos) }.into()
     };
     (call $pos:literal) => {
+        $crate::isa::CtrlInstr::Fn { pos: $pos }.into()
+    };
+    (call: $pos:ident) => {
         $crate::isa::CtrlInstr::Fn { pos: $pos }.into()
     };
 }
