@@ -40,6 +40,13 @@ impl<Id: SiteId> Bytecode<Id> for Instr<Id> {
         }
     }
 
+    fn code_byte_len(&self) -> u16 {
+        match self {
+            Instr::Ctrl(instr) => instr.code_byte_len(),
+            Instr::Reserved(instr) => Bytecode::<Id>::code_byte_len(instr),
+        }
+    }
+
     fn encode_operands<W>(&self, writer: &mut W) -> Result<(), W::Error>
     where W: BytecodeWrite<Id> {
         match self {
@@ -66,6 +73,8 @@ impl<Id: SiteId> Bytecode<Id> for ReservedInstr {
     fn op_range() -> RangeInclusive<u8> { 0..=0x7F }
 
     fn opcode_byte(&self) -> u8 { self.0 }
+
+    fn code_byte_len(&self) -> u16 { 1 }
 
     fn encode_operands<W>(&self, _writer: &mut W) -> Result<(), W::Error>
     where W: BytecodeWrite<Id> {
@@ -127,6 +136,27 @@ impl<Id: SiteId> Bytecode<Id> for CtrlInstr<Id> {
             CtrlInstr::Ret => Self::RET,
             CtrlInstr::Stop => Self::STOP,
         }
+    }
+
+    fn code_byte_len(&self) -> u16 {
+        let arg_bytes = match self {
+            CtrlInstr::Nop
+            | CtrlInstr::ChkCo
+            | CtrlInstr::ChkCk
+            | CtrlInstr::NotCo
+            | CtrlInstr::FailCk
+            | CtrlInstr::RsetCk => 0,
+            CtrlInstr::Jmp { pos: _ }
+            | CtrlInstr::JiOvfl { pos: _ }
+            | CtrlInstr::JiFail { pos: _ }
+            | CtrlInstr::Fn { pos: _ } => 2,
+            CtrlInstr::Sh { shift: _ }
+            | CtrlInstr::ShOvfl { shift: _ }
+            | CtrlInstr::ShFail { shift: _ } => 1,
+            CtrlInstr::Exec { site: _ } | CtrlInstr::Call { site: _ } => 3,
+            CtrlInstr::Ret | CtrlInstr::Stop => 0,
+        };
+        arg_bytes + 1
     }
 
     fn encode_operands<W>(&self, writer: &mut W) -> Result<(), W::Error>

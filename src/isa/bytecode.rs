@@ -42,6 +42,10 @@ pub trait Bytecode<Id: SiteId> {
     /// Returns byte representing instruction code (without its arguments).
     fn opcode_byte(&self) -> u8;
 
+    /// Returns number of bytes used by the instruction and its arguments when serialized into the
+    /// code segment.
+    fn code_byte_len(&self) -> u16;
+
     /// If the instruction call or references any external program, returns a reference to it.
     #[inline]
     fn external_ref(&self) -> Option<Id> { None }
