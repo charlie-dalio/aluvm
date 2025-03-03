@@ -194,6 +194,7 @@ impl<Id: SiteId> Bytecode<Id> for CtrlInstr<Id> {
     {
         Ok(match opcode {
             Self::NOP => Self::Nop,
+            Self::CHCO => Self::ChkCo,
             Self::CHCK => Self::ChkCk,
             Self::FAIL => Self::FailCk,
             Self::RSET => Self::RsetCk,
