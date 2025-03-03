@@ -246,6 +246,7 @@ mod test {
         let mut marshaller = Marshaller::new(&libs);
         instr.encode_instr(&mut marshaller).unwrap();
         let (code, data) = marshaller.finish();
+        assert_eq!(code.len(), instr.code_byte_len() as usize);
         assert_eq!(code.as_slice(), bytecode.as_ref());
         let mut marshaller = Marshaller::with(code, data, &libs);
         let decoded = Instr::<LibId>::decode_instr(&mut marshaller).unwrap();
