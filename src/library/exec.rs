@@ -72,6 +72,8 @@ impl Lib {
 
         #[cfg(feature = "log")]
         let mut ck0 = core.ck();
+        #[cfg(feature = "log")]
+        let mut co0 = core.co();
 
         while !marshaller.is_eof() {
             let pos = marshaller.pos();
@@ -79,15 +81,30 @@ impl Lib {
             let instr = Instr::decode_instr(&mut marshaller).ok()?;
 
             #[cfg(feature = "log")]
+            let mut prev = bmap![];
+
+            #[cfg(feature = "log")]
             {
+                for reg in instr.dst_regs() {
+                    prev.insert(reg, core.get(reg));
+                }
                 eprint!("{m}{}@x{pos:06X}:{z} {: <32}; ", lib_ref, instr.to_string());
-                for reg in instr.src_regs() {
+                let src_regs = instr.src_regs();
+                let src_empty = src_regs.is_empty();
+                let mut iter = src_regs.into_iter().peekable();
+                while let Some(reg) = iter.next() {
                     eprint!("{d}{reg} {z}");
                     if let Some(val) = core.get(reg) {
-                        eprint!("{w}{}{z}, ", val);
+                        eprint!("{w}{}{z}", val);
                     } else {
-                        eprint!("{g}~{z}, ");
+                        eprint!("{d}~{z}");
                     }
+                    if iter.peek().is_some() {
+                        eprint!(", ");
+                    }
+                }
+                if !src_empty && !prev.is_empty() {
+                    eprint!(": ");
                 }
             }
 
@@ -95,21 +112,35 @@ impl Lib {
 
             #[cfg(feature = "log")]
             {
-                eprint!("-> ");
-                for reg in instr.dst_regs() {
-                    eprint!("{g}{reg} {z}");
-                    if let Some(val) = core.get(reg) {
-                        eprint!("{y}{}{z}, ", val);
+                let mut iter = instr.dst_regs().into_iter().peekable();
+                while let Some(reg) = iter.next() {
+                    eprint!("{g}{reg} {z} ");
+                    if let Some(val) = prev.get(&reg).unwrap() {
+                        eprint!("{y}{}{z}", val);
                     } else {
-                        eprint!("{d}~{z}, ");
+                        eprint!("{d}~{z}");
+                    }
+                    eprint!(" -> ");
+                    if let Some(val) = core.get(reg) {
+                        eprint!("{y}{}{z}", val);
+                    } else {
+                        eprint!("{d}~{z}");
+                    }
+                    if iter.peek().is_some() {
+                        eprint!(", ");
                     }
                 }
                 if ck0 != core.ck() {
                     let c = if core.ck().is_ok() { g } else { r };
                     eprint!(" {d}CK {z}{c}{}{z}, ", core.ck());
                 }
+                if co0 != core.co() {
+                    let c = if core.co().is_ok() { g } else { r };
+                    eprint!(" {d}CO {z}{c}{}{z}, ", core.co());
+                }
 
                 ck0 = core.ck();
+                co0 = core.co();
             }
 
             if !core.acc_complexity(instr.complexity()) {
