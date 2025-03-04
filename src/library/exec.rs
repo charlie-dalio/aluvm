@@ -130,13 +130,19 @@ impl Lib {
                         eprint!(", ");
                     }
                 }
+                if !prev.is_empty() {
+                    eprint!(" ");
+                }
                 if ck0 != core.ck() {
                     let c = if core.ck().is_ok() { g } else { r };
-                    eprint!(" {d}CK {z}{c}{}{z}, ", core.ck());
+                    eprint!("{d}CK {z}{c}{}{z}", core.ck());
+                }
+                if ck0 != core.ck() && co0 != core.co() {
+                    eprint!(", ");
                 }
                 if co0 != core.co() {
                     let c = if core.co().is_ok() { g } else { r };
-                    eprint!(" {d}CO {z}{c}{}{z}, ", core.co());
+                    eprint!("{d}CO {z}{c}{}{z}", core.co());
                 }
 
                 ck0 = core.ck();
