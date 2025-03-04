@@ -113,6 +113,10 @@ pub struct Lib {
 impl StrictSerialize for Lib {}
 impl StrictDeserialize for Lib {}
 
+impl AsRef<Lib> for Lib {
+    fn as_ref(&self) -> &Self { self }
+}
+
 impl Lib {
     pub fn lib_id(&self) -> LibId { self.commit_id() }
 

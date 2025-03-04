@@ -64,16 +64,18 @@ where Isa: Instruction<LibId>
     /// # Returns
     ///
     /// Value of the `st0` register at the end of the program execution.
-    pub fn exec<'prog>(
+    pub fn exec<L: AsRef<Lib>>(
         &mut self,
         entry_point: LibSite,
         context: &Isa::Context<'_>,
-        lib_resolver: impl Fn(LibId) -> Option<&'prog Lib>,
+        lib_resolver: impl Fn(LibId) -> Option<L>,
     ) -> Status {
         let mut call = Some(entry_point);
         while let Some(ref mut site) = call {
             if let Some(lib) = lib_resolver(site.lib_id) {
-                call = lib.exec::<Isa>(site.offset, &mut self.core, context);
+                call = lib
+                    .as_ref()
+                    .exec::<Isa>(site.offset, &mut self.core, context);
             } else if let Some(pos) = site.offset.checked_add(1) {
                 site.offset = pos;
             } else {
