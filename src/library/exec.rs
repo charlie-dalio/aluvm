@@ -223,15 +223,6 @@ impl Lib {
             }
             match next {
                 ExecStep::Stop => {
-                    #[cfg(feature = "log")]
-                    {
-                        let c = if core.ck().is_ok() { g } else { r };
-                        eprintln!(
-                            "execution stopped; {y}CK{z} {c}{}{z}, {y}CO{z} {c}{}{z}",
-                            core.ck(),
-                            core.co()
-                        );
-                    }
                     return Jump::Halt;
                 }
                 ExecStep::Fail => {

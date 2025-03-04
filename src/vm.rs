@@ -78,7 +78,22 @@ where Isa: Instruction<LibId>
                     .as_ref()
                     .exec::<Isa>(site.offset, skip, &mut self.core, context)
                 {
-                    Jump::Halt => None,
+                    Jump::Halt => {
+                        #[cfg(feature = "log")]
+                        {
+                            let core = &self.core;
+                            let z = "\x1B[0m";
+                            let y = "\x1B[0;33m";
+                            let c = if core.ck().is_ok() { "\x1B[0;32m" } else { "\x1B[0;31m" };
+                            eprintln!();
+                            eprintln!(
+                                ">; execution stopped: {y}CK{z} {c}{}{z}, {y}CO{z} {c}{}{z}",
+                                core.ck(),
+                                core.co()
+                            );
+                        }
+                        None
+                    }
                     Jump::Instr(site) => {
                         skip = false;
                         Some(site.into())
