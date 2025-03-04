@@ -200,12 +200,12 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
 
     fn exec(
         &self,
-        current: Site<Id>,
+        cursor: Site<Id>,
         core: &mut Core<Id, Self::Core>,
         _: &Self::Context<'_>,
     ) -> ExecStep<Site<Id>> {
         let shift_jump = |shift: i8| {
-            let Some(pos) = current.offset.checked_add_signed(shift as i16) else {
+            let Some(pos) = cursor.offset.checked_add_signed(shift as i16) else {
                 return ExecStep::Fail;
             };
             ExecStep::Jump(pos)
@@ -259,20 +259,20 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
             }
             CtrlInstr::Exec { site } => return ExecStep::Call(site),
             CtrlInstr::Fn { pos } => {
-                return match core.push_cs(current) {
+                return match core.push_cs(cursor) {
                     Some(_) => ExecStep::Jump(pos),
                     None => ExecStep::Fail,
                 }
             }
             CtrlInstr::Call { site } => {
-                return match core.push_cs(current) {
+                return match core.push_cs(cursor) {
                     Some(_) => ExecStep::Call(site),
                     None => ExecStep::Fail,
                 }
             }
             CtrlInstr::Ret => {
                 return match core.pop_cs() {
-                    Some(site) => ExecStep::Call(site),
+                    Some(site) => ExecStep::Ret(site),
                     None => ExecStep::Stop,
                 }
             }

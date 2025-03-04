@@ -28,7 +28,7 @@ use core::marker::PhantomData;
 
 use crate::core::{Core, CoreConfig, CoreExt, Status};
 use crate::isa::{Instr, Instruction};
-use crate::library::{Lib, LibId, LibSite};
+use crate::library::{Jump, Lib, LibId, LibSite};
 
 /// Alu virtual machine providing single-core execution environment
 #[derive(Clone, Debug, Default)]
@@ -63,7 +63,7 @@ where Isa: Instruction<LibId>
     ///
     /// # Returns
     ///
-    /// Value of the `st0` register at the end of the program execution.
+    /// Value of the `CK` register at the end of the program execution.
     pub fn exec<L: AsRef<Lib>>(
         &mut self,
         entry_point: LibSite,
@@ -71,11 +71,23 @@ where Isa: Instruction<LibId>
         lib_resolver: impl Fn(LibId) -> Option<L>,
     ) -> Status {
         let mut call = Some(entry_point);
+        let mut skip = false;
         while let Some(ref mut site) = call {
             if let Some(lib) = lib_resolver(site.lib_id) {
-                call = lib
+                call = match lib
                     .as_ref()
-                    .exec::<Isa>(site.offset, &mut self.core, context);
+                    .exec::<Isa>(site.offset, skip, &mut self.core, context)
+                {
+                    Jump::Halt => None,
+                    Jump::Instr(site) => {
+                        skip = false;
+                        Some(site.into())
+                    }
+                    Jump::Next(site) => {
+                        skip = true;
+                        Some(site.into())
+                    }
+                };
             } else if let Some(pos) = site.offset.checked_add(1) {
                 site.offset = pos;
             } else {

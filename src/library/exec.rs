@@ -22,12 +22,25 @@
 // or implied. See the License for the specific language governing permissions and limitations under
 // the License.
 
+use amplify::num::u3;
 #[cfg(feature = "log")]
 use baid64::DisplayBaid64;
 
 use super::{Lib, Marshaller};
 use crate::isa::{Bytecode, BytecodeRead, ExecStep, Instruction};
-use crate::{Core, LibId, LibSite, Site};
+use crate::{Core, LibId, Site, SiteId};
+
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display)]
+pub enum Jump<Id: SiteId> {
+    #[display("halt")]
+    Halt,
+
+    #[display("={0}")]
+    Instr(Site<Id>),
+
+    #[display(">{0}")]
+    Next(Site<Id>),
+}
 
 impl Lib {
     /// Execute library code starting at entrypoint.
@@ -38,9 +51,10 @@ impl Lib {
     pub fn exec<Instr>(
         &self,
         entrypoint: u16,
+        skip_first: bool,
         core: &mut Core<LibId, Instr::Core>,
         context: &Instr::Context<'_>,
-    ) -> Option<LibSite>
+    ) -> Jump<LibId>
     where
         Instr: Instruction<LibId> + Bytecode<LibId>,
     {
@@ -67,7 +81,7 @@ impl Lib {
             core.reset_ck();
             #[cfg(feature = "log")]
             eprintln!("jump to non-existing offset; halting, {y}CK{z} is set to {r}false{z}");
-            return None;
+            return Jump::Halt;
         }
 
         #[cfg(feature = "log")]
@@ -75,22 +89,55 @@ impl Lib {
         #[cfg(feature = "log")]
         let mut co0 = core.co();
 
+        if marshaller.is_eof() {
+            return Jump::Halt;
+        }
+        // Skip instruction if required
+        if skip_first {
+            #[cfg(feature = "log")]
+            if Instr::decode_instr(&mut marshaller).is_err() {
+                #[cfg(feature = "log")]
+                {
+                    let (byte, bit) = marshaller.offset();
+                    eprintln!(
+                        "; unable to decode instruction at byte pos {byte:06X}#h, bit pos {bit}",
+                    );
+                }
+                return Jump::Halt;
+            };
+            let next_pos = marshaller.offset();
+            debug_assert_eq!(next_pos.1, u3::ZERO);
+            #[cfg(feature = "log")]
+            eprintln!("; return to the caller @{:06X}#h", next_pos.0);
+        }
+
         while !marshaller.is_eof() {
             let pos = marshaller.pos();
 
-            let instr = Instr::decode_instr(&mut marshaller).ok()?;
+            let Ok(instr) = Instr::decode_instr(&mut marshaller) else {
+                #[cfg(feature = "log")]
+                {
+                    let (byte, bit) = marshaller.offset();
+                    eprintln!(
+                        "unable to decode instruction at byte pos {byte:06X}#h, bit pos {bit}",
+                    );
+                }
+                return Jump::Halt;
+            };
 
             #[cfg(feature = "log")]
             let mut prev = bmap![];
 
             #[cfg(feature = "log")]
+            // Stupid compiler can't reason between `cfg` blocks
+            #[allow(unused_assignments)]
             let mut src_empty = true;
             #[cfg(feature = "log")]
             {
                 for reg in instr.dst_regs() {
                     prev.insert(reg, core.get(reg));
                 }
-                eprint!("{m}{}@{pos:06X}.h:{z} {: <32}; ", lib_ref, instr.to_string());
+                eprint!("{m}{}@{pos:06X}#h:{z} {: <32}; ", lib_ref, instr.to_string());
                 let src_regs = instr.src_regs();
                 src_empty = src_regs.is_empty();
                 let mut iter = src_regs.into_iter().peekable();
@@ -166,8 +213,13 @@ impl Lib {
             if !core.acc_complexity(instr.complexity()) {
                 let _ = core.fail_ck();
                 #[cfg(feature = "log")]
-                eprintln!("halting, complexity overflow");
-                return None;
+                {
+                    if !src_empty || !prev.is_empty() {
+                        eprint!(", ");
+                    }
+                    eprintln!("halting, complexity overflow");
+                }
+                return Jump::Halt;
             }
             match next {
                 ExecStep::Stop => {
@@ -180,7 +232,7 @@ impl Lib {
                             core.co()
                         );
                     }
-                    return None;
+                    return Jump::Halt;
                 }
                 ExecStep::Fail => {
                     #[cfg(feature = "log")]
@@ -188,7 +240,7 @@ impl Lib {
                     if core.fail_ck() {
                         #[cfg(feature = "log")]
                         eprintln!(", {y}CH{z} is {g}true{z}: halting");
-                        return None;
+                        return Jump::Halt;
                     }
                     #[cfg(feature = "log")]
                     eprintln!(", {y}CH{z} is {r}false{z}: continuing");
@@ -209,17 +261,22 @@ impl Lib {
                             "jump to non-existing offset: unconditionally halting; {y}CK{z} is \
                              set to {r}fail{z}"
                         );
-                        return None;
+                        return Jump::Halt;
                     }
                 }
                 ExecStep::Call(site) => {
                     #[cfg(feature = "log")]
                     eprintln!("{d}calling{z} {m}{site}{z}");
-                    return Some(site.into());
+                    return Jump::Instr(site.into());
+                }
+                ExecStep::Ret(site) => {
+                    #[cfg(feature = "log")]
+                    eprintln!("{d}returning to{z} {m}{site}{z}");
+                    return Jump::Next(site.into());
                 }
             }
         }
 
-        None
+        Jump::Halt
     }
 }

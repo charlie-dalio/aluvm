@@ -32,5 +32,6 @@ mod exec;
 
 pub use assembler::AssemblerError;
 pub use compiler::{CompiledLib, CompilerError};
+pub use exec::Jump;
 pub use lib::{Lib, LibId, LibSite, LibsSeg};
 pub use marshaller::{MarshallError, Marshaller};

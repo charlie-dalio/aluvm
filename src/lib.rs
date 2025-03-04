@@ -57,8 +57,7 @@
 //! undefined behaviour. Specifically,
 //! * All registers may be in the undefined statel
 //! * Impossible/incorrect operations put destination register into a special *undefined state*;
-//! * Code always extended to 2^16 bytes with zeros, which corresponds to “set st0 register to false
-//!   and stop execution” op-code;
+//! * Code always extended to 2^16 bytes with zeros, which corresponds to no-operation;
 //! * There are no invalid jump operations;
 //! * There are no invalid instructions;
 //! * Cycles & jumps are counted with 2^16 limit (bounded-time execution);
@@ -97,7 +96,7 @@
 //!   including representation of infinity for integer encodings (x/0 if x != 0) results in:
 //!   * for float underflows, subnormally encoded number,
 //!   * for x/0 if x != 0 on float numbers, ±Inf float value,
-//!   * for overflows in integer checked operations and floats: undefined value, setting st0 to
+//!   * for overflows in integer checked operations and floats: undefined value, setting `CK` to
 //!     false,
 //!   * for overflows in integer wrapped operations, modulo division on the maximum register value
 //!
@@ -126,11 +125,11 @@
 //! - String registers (S-registers): 1 block of 256 registers, 64kb each
 //!
 //! **Control flow registers:**
-//! - Status (st0), boolean (one bit)
-//! - Cycle counter (cy0), 16 bits
-//! - Instruction complexity accumulator (ca0), 16 bits
-//! - Call stack register (cs0), 3*2^16 bits (192kB block)
-//! - Call stack pointer register (cp0), 16 bits
+//! - Status (`CK`), boolean (one bit)
+//! - Cycle counter (`CY`), 16 bits
+//! - Instruction complexity accumulator (`CA`), 16 bits
+//! - Call stack register (`CS`), 3*2^16 bits (192kB block)
+//! - Call stack pointer register (`CP`), 16 bits
 //!
 //! [AluVM]: https://github.com/AluVM/aluvm-spec
 

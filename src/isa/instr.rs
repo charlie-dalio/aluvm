@@ -48,6 +48,9 @@ pub enum ExecStep<Site> {
 
     /// Jump to another code fragment.
     Call(Site),
+
+    /// Return to the next instruction after the original caller position.
+    Ret(Site),
 }
 
 /// Trait for instructions

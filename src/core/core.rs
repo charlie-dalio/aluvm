@@ -155,10 +155,10 @@ impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Default
 }
 
 impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Core<Id, Cx, CALL_STACK_SIZE> {
-    /// Initializes registers. Sets `st0` to `true`, counters to zero, call stack to empty and the
+    /// Initializes registers. Sets `CK` to `true`, counters to zero, call stack to empty and the
     /// rest of registers to `None` value.
     ///
-    /// An alias for [`Core::with`]`(`[`CoreConfig::default()`]`)`.
+    /// An alias for [`Core::with`]`(`[`CoreConfig::default()`]`, Cx::default())`.
     #[inline]
     pub fn new() -> Self {
         assert!(CALL_STACK_SIZE <= CALL_STACK_SIZE_MAX as usize, "Call stack size is too large");
