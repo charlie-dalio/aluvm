@@ -176,7 +176,7 @@ macro_rules! instr {
         $crate::isa::CtrlInstr::ShOvfl { shift: $shift }.into()
     };
     (jif CK, - $shift:literal) => {
-        $crate::isa::CtrlInstr::ShFail { shift: $shift }.into()
+        $crate::isa::CtrlInstr::ShFail { shift: -$shift }.into()
     };
     (jif CO, $pos:literal) => {
         $crate::isa::CtrlInstr::JiOvfl { pos: $pos }.into()
@@ -194,7 +194,7 @@ macro_rules! instr {
         $crate::isa::CtrlInstr::Sh { shift: $shift }.into()
     };
     (jmp - $shift:literal) => {
-        $crate::isa::CtrlInstr::Sh { shift: $shift }.into()
+        $crate::isa::CtrlInstr::Sh { shift: -$shift }.into()
     };
 
     // Calls
