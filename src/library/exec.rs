@@ -38,7 +38,7 @@ impl Lib {
     pub fn exec<Instr>(
         &self,
         entrypoint: u16,
-        registers: &mut Core<LibId, Instr::Core>,
+        core: &mut Core<LibId, Instr::Core>,
         context: &Instr::Context<'_>,
     ) -> Option<LibSite>
     where
@@ -64,14 +64,14 @@ impl Lib {
         let lib_ref = lib_mnemonic.split_at(5).0;
 
         if marshaller.seek(entrypoint).is_err() {
-            registers.reset_ck();
+            core.reset_ck();
             #[cfg(feature = "log")]
             eprintln!("jump to non-existing offset; halting, {d}st0{z} is set to {r}false{z}");
             return None;
         }
 
         #[cfg(feature = "log")]
-        let mut ck0 = registers.ck();
+        let mut ck0 = core.ck();
 
         while !marshaller.is_eof() {
             let pos = marshaller.pos();
@@ -83,7 +83,7 @@ impl Lib {
                 eprint!("{m}{}@x{pos:06X}:{z} {: <32}; ", lib_ref, instr.to_string());
                 for reg in instr.src_regs() {
                     eprint!("{d}{reg} {z}");
-                    if let Some(val) = registers.get(reg) {
+                    if let Some(val) = core.get(reg) {
                         eprint!("{w}{}{z}, ", val);
                     } else {
                         eprint!("{g}~{z}, ");
@@ -91,29 +91,29 @@ impl Lib {
                 }
             }
 
-            let next = instr.exec(Site::new(lib_id, pos), registers, context);
+            let next = instr.exec(Site::new(lib_id, pos), core, context);
 
             #[cfg(feature = "log")]
             {
                 eprint!("-> ");
                 for reg in instr.dst_regs() {
                     eprint!("{g}{reg} {z}");
-                    if let Some(val) = registers.get(reg) {
+                    if let Some(val) = core.get(reg) {
                         eprint!("{y}{}{z}, ", val);
                     } else {
-                        eprint!("{g}~{z}, ");
+                        eprint!("{d}~{z}, ");
                     }
                 }
-                if ck0 != registers.ck() {
-                    let c = if registers.ck().is_ok() { g } else { r };
-                    eprint!(" {d}CK {z}{c}{}{z}, ", registers.ck());
+                if ck0 != core.ck() {
+                    let c = if core.ck().is_ok() { g } else { r };
+                    eprint!(" {d}CK {z}{c}{}{z}, ", core.ck());
                 }
 
-                ck0 = registers.ck();
+                ck0 = core.ck();
             }
 
-            if !registers.acc_complexity(instr.complexity()) {
-                let _ = registers.fail_ck();
+            if !core.acc_complexity(instr.complexity()) {
+                let _ = core.fail_ck();
                 #[cfg(feature = "log")]
                 eprintln!("halting, complexity overflow");
                 return None;
@@ -122,13 +122,13 @@ impl Lib {
                 ExecStep::Stop => {
                     #[cfg(feature = "log")]
                     {
-                        let c = if registers.ck().is_ok() { g } else { r };
-                        eprintln!("execution stopped; {d}CK {z}{c}{}{z}", registers.ck());
+                        let c = if core.ck().is_ok() { g } else { r };
+                        eprintln!("execution stopped; {d}CK {z}{c}{}{z}", core.ck());
                     }
                     return None;
                 }
                 ExecStep::FailHalt => {
-                    let _ = registers.fail_ck();
+                    let _ = core.fail_ck();
                     #[cfg(feature = "log")]
                     eprintln!("halting, {d}CK{z} is set to {r}false{z}");
                     return None;
@@ -139,7 +139,7 @@ impl Lib {
                     continue;
                 }
                 ExecStep::FailContinue => {
-                    if registers.fail_ck() {
+                    if core.fail_ck() {
                         #[cfg(feature = "log")]
                         eprintln!(
                             "halting, {d}CK{z} is set to {r}false{z} and {d}ch{z} is {r}true{z}"
@@ -154,7 +154,7 @@ impl Lib {
                     #[cfg(feature = "log")]
                     eprintln!("{}", pos);
                     if marshaller.seek(pos).is_err() {
-                        let _ = registers.fail_ck();
+                        let _ = core.fail_ck();
                         #[cfg(feature = "log")]
                         eprintln!(
                             "jump to non-existing offset; halting, {d}CK{z} is set to {r}fail{z}"
