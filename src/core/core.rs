@@ -50,6 +50,11 @@ pub trait CoreExt: Clone + Debug {
     fn reset(&mut self);
 }
 
+pub trait Supercore<Subcore> {
+    fn subcore(&self) -> Subcore;
+    fn merge_subcore(&mut self, subcore: Subcore);
+}
+
 /// Registers of a single CPU/VM core.
 #[derive(Clone)]
 pub struct Core<
@@ -218,23 +223,10 @@ impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Debug
     }
 }
 
-impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Core<Id, Cx, CALL_STACK_SIZE> {
-    pub fn from<Cx2: CoreExt>(core: Core<Id, Cx2, CALL_STACK_SIZE>) -> Self
-    where Cx: From<Cx2> {
-        Core {
-            ch: core.ch,
-            ck: core.ck,
-            cf: core.cf,
-            co: core.co,
-            cy: core.cy,
-            ca: core.ca,
-            cl: core.cl,
-            cs: core.cs,
-            cx: core.cx.into(),
-        }
-    }
-
-    pub fn extend<Cx2: CoreExt>(self, cx: Cx2) -> Core<Id, Cx2, CALL_STACK_SIZE> {
+impl<Id: SiteId, Cx: CoreExt + Supercore<Cx2>, Cx2: CoreExt, const CALL_STACK_SIZE: usize>
+    Supercore<Core<Id, Cx2, CALL_STACK_SIZE>> for Core<Id, Cx, CALL_STACK_SIZE>
+{
+    fn subcore(&self) -> Core<Id, Cx2, CALL_STACK_SIZE> {
         Core {
             ch: self.ch,
             ck: self.ck,
@@ -243,8 +235,20 @@ impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Core<Id, Cx, CALL_ST
             cy: self.cy,
             ca: self.ca,
             cl: self.cl,
-            cs: self.cs,
-            cx,
+            cs: self.cs.clone(),
+            cx: self.cx.subcore(),
         }
+    }
+
+    fn merge_subcore(&mut self, subcore: Core<Id, Cx2, CALL_STACK_SIZE>) {
+        assert_eq!(self.ch, subcore.ch);
+        self.ck = subcore.ck;
+        self.co = subcore.co;
+        self.cf = subcore.cf;
+        self.cy = subcore.cy;
+        self.ca = subcore.ca;
+        assert_eq!(self.cl, subcore.cl);
+        self.cs = subcore.cs;
+        self.cx.merge_subcore(subcore.cx);
     }
 }

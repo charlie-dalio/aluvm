@@ -29,5 +29,5 @@ mod core;
 mod microcode;
 mod util;
 
-pub use self::core::{Core, CoreConfig, CoreExt, CALL_STACK_SIZE_MAX};
+pub use self::core::{Core, CoreConfig, CoreExt, Supercore, CALL_STACK_SIZE_MAX};
 pub use self::util::{NoExt, NoRegs, Register, Site, SiteId, Status};
