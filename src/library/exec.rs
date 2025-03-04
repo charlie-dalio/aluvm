@@ -66,7 +66,7 @@ impl Lib {
         if marshaller.seek(entrypoint).is_err() {
             core.reset_ck();
             #[cfg(feature = "log")]
-            eprintln!("jump to non-existing offset; halting, {d}st0{z} is set to {r}false{z}");
+            eprintln!("jump to non-existing offset; halting, {y}CK{z} is set to {r}false{z}");
             return None;
         }
 
@@ -88,12 +88,12 @@ impl Lib {
                 for reg in instr.dst_regs() {
                     prev.insert(reg, core.get(reg));
                 }
-                eprint!("{m}{}@x{pos:06X}:{z} {: <32}; ", lib_ref, instr.to_string());
+                eprint!("{m}{}@{pos:06X}.h:{z} {: <32}; ", lib_ref, instr.to_string());
                 let src_regs = instr.src_regs();
                 let src_empty = src_regs.is_empty();
                 let mut iter = src_regs.into_iter().peekable();
                 while let Some(reg) = iter.next() {
-                    eprint!("{d}{reg} {z}");
+                    eprint!("{d}{reg}{z} ");
                     if let Some(val) = core.get(reg) {
                         eprint!("{w}{}{z}", val);
                     } else {
@@ -114,7 +114,7 @@ impl Lib {
             {
                 let mut iter = instr.dst_regs().into_iter().peekable();
                 while let Some(reg) = iter.next() {
-                    eprint!("{g}{reg} {z} ");
+                    eprint!("{g}{reg}{z} ");
                     if let Some(val) = prev.get(&reg).unwrap() {
                         eprint!("{y}{}{z}", val);
                     } else {
@@ -136,7 +136,7 @@ impl Lib {
                 if ck0 != core.ck() {
                     let p = if ck0.is_ok() { g } else { r };
                     let c = if core.ck().is_ok() { g } else { r };
-                    eprint!("{d}CK{z} {p}{ck0}{z} -> {c}{}{z}", core.ck());
+                    eprint!("{y}CK{z} {p}{ck0}{z} -> {c}{}{z}", core.ck());
                 }
                 if ck0 != core.ck() && co0 != core.co() {
                     eprint!(", ");
@@ -144,7 +144,7 @@ impl Lib {
                 if co0 != core.co() {
                     let p = if co0.is_ok() { g } else { r };
                     let c = if core.co().is_ok() { g } else { r };
-                    eprint!("{d}CO{z} {p}{co0}{z} -> {c}{}{z}", core.co());
+                    eprint!("{y}CO{z} {p}{co0}{z} -> {c}{}{z}", core.co());
                 }
 
                 ck0 = core.ck();
@@ -162,20 +162,24 @@ impl Lib {
                     #[cfg(feature = "log")]
                     {
                         let c = if core.ck().is_ok() { g } else { r };
-                        eprintln!("execution stopped; {d}CK {z}{c}{}{z}", core.ck());
+                        eprintln!(
+                            "execution stopped; {y}CK{z} {c}{}{z}, {y}CO{z} {c}{}{z}",
+                            core.ck(),
+                            core.co()
+                        );
                     }
                     return None;
                 }
                 ExecStep::Fail => {
                     #[cfg(feature = "log")]
-                    eprintln!("{d}CK{z} {g}success{z} -> {r}fail{z}");
+                    eprint!("{y}CK{z} {g}success{z} -> {r}fail{z}");
                     if core.fail_ck() {
                         #[cfg(feature = "log")]
-                        eprintln!(", halting ({d}CH{z} is set to {g}true{z})");
+                        eprintln!(", {y}CH{z} is {g}true{z}: halting");
                         return None;
                     }
                     #[cfg(feature = "log")]
-                    eprintln!(", continuing ({d}CH{z} is set to {r}false{z})");
+                    eprintln!(", {y}CH{z} is {r}false{z}: continuing");
                     continue;
                 }
                 ExecStep::Next => {
@@ -185,19 +189,20 @@ impl Lib {
                 }
                 ExecStep::Jump(pos) => {
                     #[cfg(feature = "log")]
-                    eprintln!("{}", pos);
+                    eprintln!("{d}jumping{z} {m}@{pos:06X}{z}");
                     if marshaller.seek(pos).is_err() {
                         let _ = core.fail_ck();
                         #[cfg(feature = "log")]
                         eprintln!(
-                            "jump to non-existing offset; halting, {d}CK{z} is set to {r}fail{z}"
+                            "jump to non-existing offset: unconditionally halting; {y}CK{z} is \
+                             set to {r}fail{z}"
                         );
                         return None;
                     }
                 }
                 ExecStep::Call(site) => {
                     #[cfg(feature = "log")]
-                    eprintln!("{}", site);
+                    eprintln!("{d}calling{z} {m}{site}{z}");
                     return Some(site.into());
                 }
             }
