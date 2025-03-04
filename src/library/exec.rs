@@ -84,13 +84,15 @@ impl Lib {
             let mut prev = bmap![];
 
             #[cfg(feature = "log")]
+            let mut src_empty = true;
+            #[cfg(feature = "log")]
             {
                 for reg in instr.dst_regs() {
                     prev.insert(reg, core.get(reg));
                 }
                 eprint!("{m}{}@{pos:06X}.h:{z} {: <32}; ", lib_ref, instr.to_string());
                 let src_regs = instr.src_regs();
-                let src_empty = src_regs.is_empty();
+                src_empty = src_regs.is_empty();
                 let mut iter = src_regs.into_iter().peekable();
                 while let Some(reg) = iter.next() {
                     eprint!("{d}{reg}{z} ");
@@ -103,15 +105,20 @@ impl Lib {
                         eprint!(", ");
                     }
                 }
-                if !src_empty && !prev.is_empty() {
-                    eprint!(": ");
-                }
             }
 
             let next = instr.exec(Site::new(lib_id, pos), core, context);
 
             #[cfg(feature = "log")]
             {
+                if !src_empty {
+                    if !prev.is_empty() {
+                        eprint!(" => ");
+                    } else if ck0 != core.ck() || co0 != core.co() || next != ExecStep::Next {
+                        eprint!("; ");
+                    }
+                }
+
                 let mut iter = instr.dst_regs().into_iter().peekable();
                 while let Some(reg) = iter.next() {
                     eprint!("{g}{reg}{z} ");
@@ -130,8 +137,8 @@ impl Lib {
                         eprint!(", ");
                     }
                 }
-                if !prev.is_empty() {
-                    eprint!(" ");
+                if !prev.is_empty() && (ck0 != core.ck() || co0 != core.co()) {
+                    eprint!(", ");
                 }
                 if ck0 != core.ck() {
                     let p = if ck0.is_ok() { g } else { r };
@@ -145,6 +152,11 @@ impl Lib {
                     let p = if co0.is_ok() { g } else { r };
                     let c = if core.co().is_ok() { g } else { r };
                     eprint!("{y}CO{z} {p}{co0}{z} -> {c}{}{z}", core.co());
+                }
+                if (!prev.is_empty() || ck0 != core.ck() || co0 != core.co())
+                    && next != ExecStep::Next
+                {
+                    eprint!(", ");
                 }
 
                 ck0 = core.ck();
