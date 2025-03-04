@@ -37,14 +37,11 @@ pub enum ExecStep<Site> {
     /// Stop program execution.
     Stop,
 
-    /// Set `CK` to `Fail` and halt the program execution.
-    FailHalt,
+    /// Set `CK` to `Fail`. The program execution will halt if `CH` is set.
+    Fail,
 
     /// Move to the next instruction.
     Next,
-
-    /// Move to the next instruction and set `CK` to `Fail`.
-    FailContinue,
 
     /// Jump to the offset from the origin.
     Jump(u16),

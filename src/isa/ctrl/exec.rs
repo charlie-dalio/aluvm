@@ -115,7 +115,7 @@ impl<Id: SiteId> Instruction<Id> for ReservedInstr {
         _: &mut Core<Id, Self::Core>,
         _: &Self::Context<'_>,
     ) -> ExecStep<Site<Id>> {
-        ExecStep::FailHalt
+        ExecStep::Fail
     }
 }
 
@@ -206,7 +206,7 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
     ) -> ExecStep<Site<Id>> {
         let shift_jump = |shift: i8| {
             let Some(pos) = current.offset.checked_add_signed(shift as i16) else {
-                return ExecStep::FailHalt;
+                return ExecStep::Fail;
             };
             ExecStep::Jump(pos)
         };
@@ -215,7 +215,7 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
             CtrlInstr::Nop => {}
             CtrlInstr::ChkCo => {
                 if !core.co().is_ok() {
-                    return ExecStep::FailHalt;
+                    return ExecStep::Fail;
                 }
             }
             CtrlInstr::ChkCk => {
@@ -261,13 +261,13 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
             CtrlInstr::Fn { pos } => {
                 return match core.push_cs(current) {
                     Some(_) => ExecStep::Jump(pos),
-                    None => ExecStep::FailHalt,
+                    None => ExecStep::Fail,
                 }
             }
             CtrlInstr::Call { site } => {
                 return match core.push_cs(current) {
                     Some(_) => ExecStep::Call(site),
-                    None => ExecStep::FailHalt,
+                    None => ExecStep::Fail,
                 }
             }
             CtrlInstr::Ret => {

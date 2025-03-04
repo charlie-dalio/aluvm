@@ -134,15 +134,17 @@ impl Lib {
                     eprint!(" ");
                 }
                 if ck0 != core.ck() {
+                    let p = if ck0.is_ok() { g } else { r };
                     let c = if core.ck().is_ok() { g } else { r };
-                    eprint!("{d}CK {z}{c}{}{z}", core.ck());
+                    eprint!("{d}CK{z} {p}{ck0}{z} -> {c}{}{z}", core.ck());
                 }
                 if ck0 != core.ck() && co0 != core.co() {
                     eprint!(", ");
                 }
                 if co0 != core.co() {
+                    let p = if co0.is_ok() { g } else { r };
                     let c = if core.co().is_ok() { g } else { r };
-                    eprint!("{d}CO {z}{c}{}{z}", core.co());
+                    eprint!("{d}CO{z} {p}{co0}{z} -> {c}{}{z}", core.co());
                 }
 
                 ck0 = core.ck();
@@ -164,27 +166,21 @@ impl Lib {
                     }
                     return None;
                 }
-                ExecStep::FailHalt => {
-                    let _ = core.fail_ck();
+                ExecStep::Fail => {
                     #[cfg(feature = "log")]
-                    eprintln!("halting, {d}CK{z} is set to {r}false{z}");
-                    return None;
+                    eprintln!("{d}CK{z} {g}success{z} -> {r}fail{z}");
+                    if core.fail_ck() {
+                        #[cfg(feature = "log")]
+                        eprintln!(", halting ({d}CH{z} is set to {g}true{z})");
+                        return None;
+                    }
+                    #[cfg(feature = "log")]
+                    eprintln!(", continuing ({d}CH{z} is set to {r}false{z})");
+                    continue;
                 }
                 ExecStep::Next => {
                     #[cfg(feature = "log")]
                     eprintln!();
-                    continue;
-                }
-                ExecStep::FailContinue => {
-                    if core.fail_ck() {
-                        #[cfg(feature = "log")]
-                        eprintln!(
-                            "halting, {d}CK{z} is set to {r}false{z} and {d}ch{z} is {r}true{z}"
-                        );
-                        return None;
-                    }
-                    #[cfg(feature = "log")]
-                    eprintln!("failing, {d}CK{z} is set to {r}false{z}");
                     continue;
                 }
                 ExecStep::Jump(pos) => {

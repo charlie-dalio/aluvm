@@ -46,7 +46,7 @@ impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Core<Id, Cx, CALL_ST
     ///
     /// Returns whether further execution should be stopped (i.e. `ch` register value).
     #[must_use]
-    pub fn fail_ck(&mut self) -> bool {
+    pub(crate) fn fail_ck(&mut self) -> bool {
         self.ck = Status::Fail;
         self.cf += 1;
         self.ch
