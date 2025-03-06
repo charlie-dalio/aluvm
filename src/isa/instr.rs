@@ -66,9 +66,11 @@ pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Clone + Eq {
         TinyOrdSet::from_iter_checked(iter)
     }
 
-    fn is_local_goto_target(&self) -> bool;
+    fn is_goto_target(&self) -> bool;
 
     fn local_goto_pos(&mut self) -> Option<&mut u16>;
+
+    fn remote_goto_pos(&mut self) -> Option<&mut Site<Id>>;
 
     /// Lists all registers which are used by the instruction.
     fn regs(&self) -> BTreeSet<<Self::Core as CoreExt>::Reg> {

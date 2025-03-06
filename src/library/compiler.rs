@@ -23,6 +23,7 @@
 // the License.
 
 use alloc::vec::Vec;
+use std::collections::BTreeMap;
 
 use crate::isa::Instruction;
 use crate::library::assembler::AssemblerError;
@@ -40,6 +41,10 @@ pub enum CompilerError<Isa: Instruction<LibId>> {
     ///
     /// The known goto target offsets are: {3:#x?}
     InvalidRef(Isa, usize, u16, Vec<u16>),
+
+    /// instruction number {1} `{0}` (offset {2:#x}) references library which is not a dependency
+    /// (lib id {3}).
+    InvalidLib(Isa, usize, u16, LibId),
 }
 
 pub struct CompiledLib {
@@ -51,27 +56,46 @@ pub struct CompiledLib {
 impl CompiledLib {
     /// Compiles library from the provided instructions by resolving local call pointers first, and
     /// then assembling it into a bytecode by calling [`Self::assemble`].
-    pub fn compile<Isa>(mut code: impl AsMut<[Isa]>) -> Result<Self, CompilerError<Isa>>
-    where Isa: Instruction<LibId> {
+    pub fn compile<Isa>(
+        mut code: impl AsMut<[Isa]>,
+        deps: &[&CompiledLib],
+    ) -> Result<Self, CompilerError<Isa>>
+    where
+        Isa: Instruction<LibId>,
+    {
+        let deps = deps
+            .iter()
+            .map(|lib| (lib.id, lib))
+            .collect::<BTreeMap<_, _>>();
         let code = code.as_mut();
         let mut routines = vec![];
         let mut cursor = 0u16;
         for instr in &*code {
-            if instr.is_local_goto_target() {
+            if instr.is_goto_target() {
                 routines.push(cursor);
             }
             cursor += instr.code_byte_len();
         }
         let mut cursor = 0u16;
         for (no, instr) in code.iter_mut().enumerate() {
-            let Some(goto_pos) = instr.local_goto_pos() else {
-                cursor += instr.code_byte_len();
-                continue;
-            };
-            let Some(pos) = routines.get(*goto_pos as usize) else {
-                return Err(CompilerError::InvalidRef(instr.clone(), no, cursor, routines));
-            };
-            *goto_pos = *pos;
+            if let Some(goto_pos) = instr.local_goto_pos() {
+                let Some(pos) = routines.get(*goto_pos as usize) else {
+                    return Err(CompilerError::InvalidRef(instr.clone(), no, cursor, routines));
+                };
+                *goto_pos = *pos;
+            }
+            let cloned_instr = instr.clone();
+            if let Some(remote_pos) = instr.remote_goto_pos() {
+                let Some(lib) = deps.get(&remote_pos.prog_id) else {
+                    return Err(CompilerError::InvalidLib(
+                        cloned_instr,
+                        no,
+                        cursor,
+                        remote_pos.prog_id,
+                    ));
+                };
+                remote_pos.offset = lib.routine(remote_pos.offset).offset;
+            }
             cursor += instr.code_byte_len();
         }
         let lib = Lib::assemble(code)?;
