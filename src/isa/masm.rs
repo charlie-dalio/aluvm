@@ -189,16 +189,16 @@ macro_rules! instr {
 
     // Calls
     (jmp $lib:ident, $pos:literal) => {
-        $crate::isa::CtrlInstr::Exec { site: $crate::Site::new($lib, $pos) }.into()
+        $crate::isa::CtrlInstr::Exec { site: $crate::Site::new($lib, $pos).into() }.into()
     };
     (jmp $lib:ident, : $pos:ident) => {
-        $crate::isa::CtrlInstr::Exec { site: $crate::Site::new($lib, $pos) }.into()
+        $crate::isa::CtrlInstr::Exec { site: $crate::Site::new($lib, $pos).into() }.into()
     };
     (call $lib:ident, $pos:literal) => {
-        $crate::isa::CtrlInstr::Call { site: $crate::Site::new($lib, $pos) }.into()
+        $crate::isa::CtrlInstr::Call { site: $crate::Site::new($lib, $pos).into() }.into()
     };
     (call $lib:ident, : $pos:ident) => {
-        $crate::isa::CtrlInstr::Call { site: $crate::Site::new($lib, $pos) }.into()
+        $crate::isa::CtrlInstr::Call { site: $crate::Site::new($lib, $pos).into() }.into()
     };
     (call $pos:literal) => {
         $crate::isa::CtrlInstr::Fn { pos: $pos }.into()
