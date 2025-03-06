@@ -47,6 +47,13 @@ impl<Id: SiteId> Bytecode<Id> for Instr<Id> {
         }
     }
 
+    fn external_ref(&self) -> Option<Id> {
+        match self {
+            Instr::Ctrl(instr) => instr.external_ref(),
+            Instr::Reserved(instr) => Bytecode::<Id>::external_ref(instr),
+        }
+    }
+
     fn encode_operands<W>(&self, writer: &mut W) -> Result<(), W::Error>
     where W: BytecodeWrite<Id> {
         match self {
@@ -75,6 +82,8 @@ impl<Id: SiteId> Bytecode<Id> for ReservedInstr {
     fn opcode_byte(&self) -> u8 { self.0 }
 
     fn code_byte_len(&self) -> u16 { 1 }
+
+    fn external_ref(&self) -> Option<Id> { None }
 
     fn encode_operands<W>(&self, _writer: &mut W) -> Result<(), W::Error>
     where W: BytecodeWrite<Id> {
@@ -157,6 +166,28 @@ impl<Id: SiteId> Bytecode<Id> for CtrlInstr<Id> {
             CtrlInstr::Ret | CtrlInstr::Stop => 0,
         };
         arg_bytes + 1
+    }
+
+    fn external_ref(&self) -> Option<Id> {
+        match *self {
+            CtrlInstr::Nop
+            | CtrlInstr::ChkCo
+            | CtrlInstr::ChkCk
+            | CtrlInstr::FailCk
+            | CtrlInstr::RsetCk
+            | CtrlInstr::NotCo
+            | CtrlInstr::Ret
+            | CtrlInstr::Stop => None,
+
+            CtrlInstr::Jmp { pos: _ }
+            | CtrlInstr::JiOvfl { pos: _ }
+            | CtrlInstr::JiFail { pos: _ }
+            | CtrlInstr::Fn { pos: _ } => None,
+            CtrlInstr::Sh { shift: _ }
+            | CtrlInstr::ShOvfl { shift: _ }
+            | CtrlInstr::ShFail { shift: _ } => None,
+            CtrlInstr::Call { site } | CtrlInstr::Exec { site } => Some(site.prog_id),
+        }
     }
 
     fn encode_operands<W>(&self, writer: &mut W) -> Result<(), W::Error>

@@ -47,8 +47,7 @@ pub trait Bytecode<Id: SiteId> {
     fn code_byte_len(&self) -> u16;
 
     /// If the instruction call or references any external program, returns a reference to it.
-    #[inline]
-    fn external_ref(&self) -> Option<Id> { None }
+    fn external_ref(&self) -> Option<Id>;
 
     /// Write an instruction as bytecode.
     fn encode_instr<W>(&self, writer: &mut W) -> Result<(), W::Error>
