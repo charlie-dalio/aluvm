@@ -88,16 +88,6 @@ macro_rules! aluasm_inner {
         $code.push(instr!{ $op $( $arg ),+ });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
-    // operand is an external jump to a named location in library literal
-    { $code:ident => $op:ident $arg:literal @ $lib:ident ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg @ $lib });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
-    // operand is an external jump to a named location in named library
-    { $code:ident => $op:ident $arg:ident @ $lib:ident ; $($tt:tt)* } => {
-        $code.push(instr!{ $op $arg @ $lib });
-        $crate::aluasm_inner! { $code => $( $tt )* }
-    };
     // operand is a positive shift
     { $code:ident => $op:ident + $pos:literal ; $($tt:tt)* } => {
         $code.push(instr!{ $op + $pos });
@@ -198,10 +188,16 @@ macro_rules! instr {
     };
 
     // Calls
-    (jmp $lib:ident @ $pos:literal) => {
+    (jmp $lib:ident, $pos:literal) => {
         $crate::isa::CtrlInstr::Exec { site: $crate::Site::new($lib, $pos) }.into()
     };
-    (call $lib:ident @ $pos:literal) => {
+    (jmp $lib:ident, : $pos:ident) => {
+        $crate::isa::CtrlInstr::Exec { site: $crate::Site::new($lib, $pos) }.into()
+    };
+    (call $lib:ident, $pos:literal) => {
+        $crate::isa::CtrlInstr::Call { site: $crate::Site::new($lib, $pos) }.into()
+    };
+    (call $lib:ident, : $pos:ident) => {
         $crate::isa::CtrlInstr::Call { site: $crate::Site::new($lib, $pos) }.into()
     };
     (call $pos:literal) => {
