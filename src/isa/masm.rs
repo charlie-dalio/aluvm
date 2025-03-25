@@ -34,7 +34,7 @@
 /// const START: u16 = 0;
 ///
 /// let code = aluasm! {
-///     nop                 ;
+///   .routine  :START      ;
 ///     not     CO          ;
 ///     fail    CK          ;
 ///     mov     CO, CK      ;
@@ -73,6 +73,11 @@ macro_rules! aluasm {
 macro_rules! aluasm_inner {
     // end of program
     { $code:ident => } => { };
+    // macro instruction
+    { $code:ident => . $masm:ident : $label:ident ; $($tt:tt)* } => {
+        $code.push(instr!{ . $masm : $label });
+        $crate::aluasm_inner! { $code => $( $tt )* }
+    };
     // no operands
     { $code:ident => $op:ident ; $($tt:tt)* } => {
         $code.push(instr!{ $op });
@@ -129,6 +134,19 @@ macro_rules! aluasm_inner {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! instr {
+    (.routine: $_:ident) => {
+        $crate::isa::CtrlInstr::Nop.into()
+    };
+    (.proc: $_:ident) => {
+        $crate::isa::CtrlInstr::Nop.into()
+    };
+    (.label: $_:ident) => {
+        $crate::isa::CtrlInstr::Nop.into()
+    };
+    (.loop: $_:ident) => {
+        $crate::isa::CtrlInstr::Nop.into()
+    };
+
     (nop) => {
         $crate::isa::CtrlInstr::Nop.into()
     };
