@@ -134,7 +134,7 @@ impl Display for Lib {
         writeln!(f, "ISAE:  {}", self.isae_string())?;
         writeln!(f, "CODE: {:x}", self.code)?;
         writeln!(f, "DATA: {:x}", self.data)?;
-        if self.libs.len() > 0 {
+        if !self.libs.is_empty() {
             writeln!(
                 f,
                 "LIBS: {:8}",

@@ -258,12 +258,12 @@ impl Lib {
                 ExecStep::Call(site) => {
                     #[cfg(feature = "log")]
                     eprintln!("{d}calling{z} {m}{site}{z}");
-                    return Jump::Instr(site.into());
+                    return Jump::Instr(site);
                 }
                 ExecStep::Ret(site) => {
                     #[cfg(feature = "log")]
                     eprintln!("{d}returning to{z} {m}{site}{z}");
-                    return Jump::Next(site.into());
+                    return Jump::Next(site);
                 }
             }
         }
