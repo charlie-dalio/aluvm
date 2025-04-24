@@ -43,7 +43,7 @@ pub enum Jump<Id: SiteId> {
 }
 
 impl Lib {
-    /// Execute library code starting at entrypoint.
+    /// Execute library code starting at the entrypoint.
     ///
     /// # Returns
     ///
@@ -94,7 +94,6 @@ impl Lib {
         }
         // Skip instruction if required
         if skip_first {
-            #[cfg(feature = "log")]
             if Instr::decode_instr(&mut marshaller).is_err() {
                 #[cfg(feature = "log")]
                 {
