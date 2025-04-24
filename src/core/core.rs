@@ -29,9 +29,9 @@ use amplify::confinement::ConfinedVec;
 use super::{Site, SiteId, Status};
 use crate::{Register, LIB_NAME_ALUVM};
 
-/// Maximal size of call stack.
+/// Maximal size of the call stack.
 ///
-/// Equals to 0xFFFF (i.e. maximum limited by `cy` and `cp` bit size).
+/// Equals to 0xFFFF (i.e., maximum limited by `cy` and `cp` bit size).
 pub const CALL_STACK_SIZE_MAX: u16 = 0xFF;
 
 pub trait CoreExt: Clone + Debug {
@@ -72,7 +72,7 @@ pub struct Core<
     pub(super) ch: bool,
 
     /// Check register, which is set on any failure (accessing register in `None` state, zero
-    /// division etc.). Can be reset.
+    /// division, etc.). Can be reset.
     ///
     /// # See also
     ///
@@ -88,7 +88,7 @@ pub struct Core<
     /// - [`Core::ck`] register
     pub(super) cf: u64,
 
-    /// Test register, which acts as boolean test result (also a carry flag).
+    /// Test register, which acts as a boolean test result (also a carry flag).
     pub(super) co: Status,
 
     /// Counts number of jumps (possible cycles). The number of jumps is limited by 2^16 per
@@ -97,8 +97,8 @@ pub struct Core<
 
     /// Complexity accumulator / counter.
     ///
-    /// Each instruction has associated computational complexity level. This register sums
-    /// complexity of executed instructions.
+    /// Each instruction has an associated computational complexity level. This register sums
+    /// the complexity of executed instructions.
     ///
     /// # See also
     ///
@@ -108,8 +108,8 @@ pub struct Core<
 
     /// Complexity limit.
     ///
-    /// If this register has a value set, once [`Core::ca`] will reach this value the VM will
-    /// stop program execution setting `CK` to a failure.
+    /// If this register has a value set, once [`Core::ca`] reaches this value, the VM will stop
+    /// program execution setting `CK` to a failure.
     pub(super) cl: Option<u64>,
 
     /// Call stack.

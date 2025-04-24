@@ -79,7 +79,7 @@ pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Clone + Eq {
         regs
     }
 
-    /// List of registers which value is taken into the account by the instruction.
+    /// List of registers which value is taken into account by the instruction.
     fn src_regs(&self) -> BTreeSet<<Self::Core as CoreExt>::Reg>;
 
     /// List of registers which value may be changed by the instruction.
@@ -101,7 +101,7 @@ pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Clone + Eq {
             .sum()
     }
 
-    /// The size of the data coming as an instruction operands (i.e. except data coming from
+    /// The size of the data coming as an instruction operand (i.e., except data coming from
     /// registers or read from outside the instruction operands).
     fn op_data_bytes(&self) -> u16;
 
@@ -123,7 +123,7 @@ pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Clone + Eq {
     /// Computational complexity is the number of "CPU ticks" required to process the instruction.
     fn complexity(&self) -> u64 { self.base_complexity() }
 
-    /// Executes given instruction taking all registers as input and output.
+    /// Executes the given instruction taking all registers as input and output.
     ///
     /// # Arguments
     ///
