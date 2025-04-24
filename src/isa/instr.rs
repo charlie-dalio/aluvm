@@ -110,11 +110,10 @@ pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Clone + Eq {
     fn ext_data_bytes(&self) -> u16;
 
     fn base_complexity(&self) -> u64 {
-        (self.op_data_bytes() as u64 // 1k of complexity units per input bit
-            + self.src_reg_bytes() as u64 * 10 // 10k of complexity units per input bit
-            + self.dst_reg_bytes() as u64 * 10 // 10k of complexity units per output bit
-            + self.ext_data_bytes() as u64 * 100) // x10 complexity units per byte of external
-                                                 // memory
+        (self.op_data_bytes() as u64
+            + self.src_reg_bytes() as u64
+            + self.dst_reg_bytes() as u64
+            + self.ext_data_bytes() as u64 * 2)
             * 8 // per bit
             * 1000 // by default use large unit
     }
