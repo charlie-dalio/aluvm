@@ -34,10 +34,10 @@ pub const LIB_ID_ALUVM: &str =
     "stl:t1kptI_t-R8Ei0Wa-e0m53SK-toGi5AC-si8GK5F-MbQp588#reward-accent-swim";
 
 fn _aluvm_stl() -> Result<TypeLib, CompileError> {
-    LibBuilder::new(libname!(LIB_NAME_ALUVM), tiny_bset! {
-        strict_types::stl::std_stl().to_dependency(),
-        strict_types::stl::strict_types_stl().to_dependency()
-    })
+    LibBuilder::with(libname!(LIB_NAME_ALUVM), [
+        strict_types::stl::std_stl().to_dependency_types(),
+        strict_types::stl::strict_types_stl().to_dependency_types(),
+    ])
     .transpile::<LibSite>()
     .transpile::<Lib>()
     .transpile::<CoreConfig>()
