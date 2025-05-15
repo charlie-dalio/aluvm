@@ -78,7 +78,7 @@ impl Lib {
         let lib_ref = lib_mnemonic.split_at(5).0;
 
         if marshaller.seek(entrypoint).is_err() {
-            core.reset_ck();
+            let _ = core.fail_ck();
             #[cfg(feature = "log")]
             eprintln!("jump to non-existing offset; halting, {y}CK{z} is set to {r}false{z}");
             return Jump::Halt;
