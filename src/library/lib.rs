@@ -165,6 +165,7 @@ impl Display for Lib {
 
 #[cfg(test)]
 mod test {
+    #![cfg_attr(coverage_nightly, coverage(off))]
     use strict_encoding::StrictDumb;
 
     use super::*;

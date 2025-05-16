@@ -445,6 +445,7 @@ where
 
 #[cfg(test)]
 mod tests {
+    #![cfg_attr(coverage_nightly, coverage(off))]
     use super::*;
 
     #[test]

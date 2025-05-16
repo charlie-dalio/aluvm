@@ -262,6 +262,7 @@ impl<Id: SiteId> Bytecode<Id> for CtrlInstr<Id> {
 
 #[cfg(test)]
 mod test {
+    #![cfg_attr(coverage_nightly, coverage(off))]
     use core::str::FromStr;
 
     use amplify::confinement::SmallBlob;
