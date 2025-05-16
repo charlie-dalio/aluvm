@@ -29,8 +29,9 @@
     unused_mut,
     unused_imports,
     dead_code,
-    // missing_docs
+    missing_docs
 )]
+#![allow(clippy::bool_assert_comparison)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 //! Rust implementation of AluVM (arithmetic logic unit virtual machine) and assembler from Alu
@@ -133,8 +134,6 @@
 //!
 //! [AluVM]: https://github.com/AluVM/aluvm-spec
 
-#![allow(clippy::bool_assert_comparison)]
-
 extern crate alloc;
 
 #[macro_use]
@@ -155,6 +154,7 @@ mod vm;
 #[cfg(feature = "stl")]
 pub mod stl;
 
+/// Module providing register information
 pub mod regs {
     pub use crate::core::{Status, CALL_STACK_SIZE_MAX};
 }
@@ -172,4 +172,5 @@ pub use vm::Vm;
 
 pub use self::core::{Core, CoreConfig, CoreExt, NoExt, NoRegs, Register, Site, SiteId, Supercore};
 
+/// Name of the strict types library for AluVM.
 pub const LIB_NAME_ALUVM: &str = "AluVM";

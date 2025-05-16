@@ -55,21 +55,29 @@ pub enum ExecStep<Site> {
 
 /// Trait for instructions
 pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Clone + Eq {
+    /// The names of the ISA extension set these instructions cover.
     const ISA_EXT: &'static [&'static str];
 
+    /// Extensions to the AluVM core unit provided by this instruction set.
     type Core: CoreExt;
     /// Context: external data which are accessible to the ISA.
     type Context<'ctx>;
 
+    /// Convert the set of ISA extensions from [`Self::ISA_EXT`] into a set of [`IsaId`].
     fn isa_ext() -> TinyOrdSet<IsaId> {
         let iter = Self::ISA_EXT.iter().copied().map(IsaId::from);
         TinyOrdSet::from_iter_checked(iter)
     }
 
+    /// Whether the instruction can be used as a goto-target.
     fn is_goto_target(&self) -> bool;
 
+    /// If an instruction is a jump operation inside the library, it should return its goto target
+    /// position number.
     fn local_goto_pos(&mut self) -> Option<&mut u16>;
 
+    /// If an instruction is a jump operation into an external library, it should return its remote
+    /// target.
     fn remote_goto_pos(&mut self) -> Option<&mut Site<Id>>;
 
     /// Lists all registers which are used by the instruction.
@@ -109,6 +117,9 @@ pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Clone + Eq {
     /// as a parameter).
     fn ext_data_bytes(&self) -> u16;
 
+    /// Computes base (non-adjusted) complexity of the instruction.
+    ///
+    /// Called by the default [`Self::complexity`] implementation. See it for more details.
     fn base_complexity(&self) -> u64 {
         (self.op_data_bytes() as u64
             + self.src_reg_bytes() as u64

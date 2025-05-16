@@ -37,7 +37,7 @@ pub enum CtrlInstr<Id: SiteId> {
     #[display("chk     CO")]
     ChkCo,
 
-    /// Test `CK` value, terminates if in failed state.
+    /// Test `CK` value, terminates if in a failed state.
     #[display("chk     CK")]
     ChkCk,
 
@@ -55,41 +55,68 @@ pub enum CtrlInstr<Id: SiteId> {
 
     /// Jump to location (unconditionally).
     #[display("jmp     {pos:04X}#h")]
-    Jmp { pos: u16 },
+    Jmp {
+        /** Target position to jump to */
+        pos: u16,
+    },
 
     /// Jump to location if `CO` is true.
     #[display("jif     CO, {pos:04X}#h")]
-    JiOvfl { pos: u16 },
+    JiOvfl {
+        /** Target position to jump to */
+        pos: u16,
+    },
 
     /// Jump to location if `CK` is in a failed state.
     #[display("jif     CK, {pos:04X}#h")]
-    JiFail { pos: u16 },
+    JiFail {
+        /** Target position to jump to */
+        pos: u16,
+    },
 
     /// Relative jump.
     #[display("jmp     {shift:+03X}#h")]
-    Sh { shift: i8 },
+    Sh {
+        /** Number of bytes for the relative shift */
+        shift: i8,
+    },
 
     /// Relative jump if `CO` is true.
     #[display("jif     CO, {shift:+03X}#h")]
-    ShOvfl { shift: i8 },
+    ShOvfl {
+        /** Number of bytes for the relative shift */
+        shift: i8,
+    },
 
     /// Relative jump if `CK` is in a failed state.
     #[display("jif     CK, {shift:+03X}#h")]
-    ShFail { shift: i8 },
+    ShFail {
+        /** Number of bytes for the relative shift */
+        shift: i8,
+    },
 
     /// External jump.
     #[display("jmp     {site}")]
-    Exec { site: Site<Id> },
+    Exec {
+        /** Target site to jump to */
+        site: Site<Id>,
+    },
 
     /// Subroutine call.
     #[display("call    {pos:04X}#h")]
-    Fn { pos: u16 },
+    Fn {
+        /** Target position for the function jump */
+        pos: u16,
+    },
 
     /// External subroutine call.
     #[display("call    {site}")]
-    Call { site: Site<Id> },
+    Call {
+        /** Target site */
+        site: Site<Id>,
+    },
 
-    /// Return from a subroutine or finish program.
+    /// Return from a subroutine or finish the program.
     #[display("ret")]
     Ret,
 
