@@ -77,7 +77,8 @@ impl From<Sha256> for LibId {
 }
 
 /// Location inside the instruction sequence which can be executed by the core.
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display)]
+#[display("{lib_id}@{offset:04}")]
 #[derive(StrictType, StrictDumb, StrictEncode, StrictDecode)]
 #[strict_type(lib = LIB_NAME_ALUVM)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "camelCase"))]

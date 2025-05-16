@@ -63,6 +63,7 @@ where
     libs: &'a LibsSeg,
 }
 
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl<'a, C, D> Debug for Marshaller<'a, C, D>
 where
     C: AsRef<[u8]>,

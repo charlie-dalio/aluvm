@@ -136,7 +136,7 @@ impl Lib {
                 for reg in instr.dst_regs() {
                     prev.insert(reg, core.get(reg));
                 }
-                eprint!("{m}{}@{pos:06X}#h:{z} {: <32}; ", lib_ref, instr.to_string());
+                eprint!("{m}{}@{pos:06}:{z} {: <32}; ", lib_ref, instr.to_string());
                 let src_regs = instr.src_regs();
                 src_empty = src_regs.is_empty();
                 let mut iter = src_regs.into_iter().peekable();
@@ -243,7 +243,7 @@ impl Lib {
                 }
                 ExecStep::Jump(pos) => {
                     #[cfg(feature = "log")]
-                    eprintln!("{d}jumping{z} {m}@{pos:06X}{z}");
+                    eprintln!("{d}jumping{z} {m}@{pos:06}{z}");
                     if marshaller.seek(pos).is_err() {
                         let _ = core.fail_ck();
                         #[cfg(feature = "log")]

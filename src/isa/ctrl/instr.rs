@@ -54,42 +54,42 @@ pub enum CtrlInstr<Id: SiteId> {
     RsetCk,
 
     /// Jump to location (unconditionally).
-    #[display("jmp     {pos:04X}#h")]
+    #[display("jmp     {pos:04}")]
     Jmp {
         /** Target position to jump to */
         pos: u16,
     },
 
-    /// Jump to location if `CO` is true.
-    #[display("jif     CO, {pos:04X}#h")]
+    /// Jump to location if `CO` is in a failed state.
+    #[display("jif     CO, {pos:04}")]
     JiOvfl {
         /** Target position to jump to */
         pos: u16,
     },
 
     /// Jump to location if `CK` is in a failed state.
-    #[display("jif     CK, {pos:04X}#h")]
+    #[display("jif     CK, {pos:04}")]
     JiFail {
         /** Target position to jump to */
         pos: u16,
     },
 
     /// Relative jump.
-    #[display("jmp     {shift:+03X}#h")]
+    #[display("jmp     {shift:+}")]
     Sh {
         /** Number of bytes for the relative shift */
         shift: i8,
     },
 
-    /// Relative jump if `CO` is true.
-    #[display("jif     CO, {shift:+03X}#h")]
+    /// Relative jump if `CO` is in a failed state.
+    #[display("jif     CO, {shift:+}")]
     ShOvfl {
         /** Number of bytes for the relative shift */
         shift: i8,
     },
 
     /// Relative jump if `CK` is in a failed state.
-    #[display("jif     CK, {shift:+03X}#h")]
+    #[display("jif     CK, {shift:+}")]
     ShFail {
         /** Number of bytes for the relative shift */
         shift: i8,
@@ -103,7 +103,7 @@ pub enum CtrlInstr<Id: SiteId> {
     },
 
     /// Subroutine call.
-    #[display("call    {pos:04X}#h")]
+    #[display("call    {pos:04}")]
     Fn {
         /** Target position for the function jump */
         pos: u16,

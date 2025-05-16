@@ -98,13 +98,13 @@ impl Not for Status {
 /// Trait for program identifiers.
 ///
 /// This type is required in addition to [`crate::LibId`] in order to achieve proper abstraction,
-/// layering, and separation of concerns: the core must know nothing about libraries structure.
+/// layering, and separation of concerns: the core must know nothing about library structure.
 pub trait SiteId: Copy + Ord + Debug + Display + FromStr {}
 
 /// Location inside the instruction sequence which can be executed by the core.
 ///
 /// This type is required in addition to [`crate::LibSite`] in order to achieve proper abstraction,
-/// layering, and separation of concerns: the core must know nothing about libraries structure.
+/// layering, and separation of concerns: the core must know nothing about library structure.
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
 pub struct Site<Id: SiteId> {
     /// Identifier of the program.
@@ -121,7 +121,7 @@ impl<Id: SiteId> Site<Id> {
 
 impl<Id: SiteId> Display for Site<Id> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}@{:04X}#h", self.prog_id, self.offset)
+        write!(f, "{}@{:04}", self.prog_id, self.offset)
     }
 }
 

@@ -310,3 +310,96 @@ impl<Id: SiteId> Instruction<Id> for CtrlInstr<Id> {
         ExecStep::Next
     }
 }
+
+#[cfg(test)]
+mod test {
+    #![cfg_attr(coverage_nightly, coverage(off))]
+
+    use super::*;
+    use crate::{aluasm, CompiledLib, CoreConfig, LibId, LibSite, Vm};
+
+    fn code() -> Vec<Instr<LibId>> {
+        const MAIN: u16 = 0;
+        const SUB: u16 = 1;
+        const END: u16 = 2;
+
+        aluasm! {
+           .routine :MAIN;
+            chk     CO;
+            chk     CK;
+
+            jif     CO, :MAIN;
+            jif     CO, -1;
+
+            jif     CK, :MAIN;
+            jif     CK, -1;
+
+            fail    CK;
+            mov     CO, CK;
+            chk     CK;
+            not     CO;
+            chk     CO;
+
+            jmp     +5;
+            jmp     :MAIN; // this is skipped
+
+            call    :SUB;
+            stop;
+
+           .routine :SUB;
+            jmp     :END;
+           .label   :END;
+            ret;
+        }
+    }
+
+    #[test]
+    fn run() {
+        let code = code();
+
+        let lib = CompiledLib::compile(code.clone(), &[]).unwrap().into_lib();
+        let mut disasm = lib.disassemble::<Instr<_>>().unwrap();
+        assert_eq!(disasm[14], CtrlInstr::Fn { pos: 27 }.into());
+        assert_eq!(disasm[17], CtrlInstr::Jmp { pos: 31 }.into());
+        disasm[14] = CtrlInstr::Fn { pos: 1 }.into();
+        disasm[17] = CtrlInstr::Jmp { pos: 2 }.into();
+        assert_eq!(disasm, code);
+
+        let mut vm_main =
+            Vm::<Instr<LibId>>::with(CoreConfig { halt: false, complexity_lim: None }, ());
+        let resolver = |_: LibId| Some(&lib);
+        let status = vm_main.exec(LibSite::new(lib.lib_id(), 0), &(), resolver);
+        assert_eq!(status, Status::Ok);
+    }
+
+    #[test]
+    fn print_disassemble() {
+        let lib = CompiledLib::compile(code(), &[]).unwrap().into_lib();
+        let mut buf = Vec::new();
+        lib.print_disassemble::<Instr<_>>(&mut buf).unwrap();
+        assert_eq!(
+            String::from_utf8(buf).unwrap(),
+            "@000000: nop
+@000001: chk     CO
+@000002: chk     CK
+@000003: jif     CO, 0000
+@000006: jif     CO, -1
+@000008: jif     CK, 0000
+@000011: jif     CK, -1
+@000013: fail    CK
+@000014: mov     CO, CK
+@000015: chk     CK
+@000016: not     CO
+@000017: chk     CO
+@000018: jmp     +5
+@000020: jmp     0000
+@000023: call    0027
+@000026: stop
+@000027: nop
+@000028: jmp     0031
+@000031: nop
+@000032: ret
+"
+        );
+    }
+}

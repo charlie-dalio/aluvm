@@ -207,6 +207,7 @@ impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Core<Id, Cx, CALL_ST
     }
 }
 
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl<Id: SiteId, Cx: CoreExt, const CALL_STACK_SIZE: usize> Debug
     for Core<Id, Cx, CALL_STACK_SIZE>
 {

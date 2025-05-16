@@ -183,6 +183,12 @@ macro_rules! instr {
     (jif CO, + $shift:literal) => {
         $crate::isa::CtrlInstr::ShOvfl { shift: $shift }.into()
     };
+    (jif CO, - $shift:literal) => {
+        $crate::isa::CtrlInstr::ShOvfl { shift: -$shift }.into()
+    };
+    (jif CK, + $shift:literal) => {
+        $crate::isa::CtrlInstr::ShFail { shift: $shift }.into()
+    };
     (jif CK, - $shift:literal) => {
         $crate::isa::CtrlInstr::ShFail { shift: -$shift }.into()
     };
