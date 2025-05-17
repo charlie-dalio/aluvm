@@ -25,7 +25,7 @@
 use alloc::vec::Vec;
 use std::collections::BTreeMap;
 
-use crate::isa::Instruction;
+use crate::isa::{GotoTarget, Instruction};
 use crate::library::assembler::AssemblerError;
 use crate::{Lib, LibId, LibSite};
 
@@ -81,7 +81,7 @@ impl CompiledLib {
         }
         let mut cursor = 0u16;
         for (no, instr) in code.iter_mut().enumerate() {
-            if let Some(goto_pos) = instr.local_goto_pos() {
+            if let GotoTarget::Absolute(goto_pos) = instr.local_goto_pos() {
                 let Some(pos) = routines.get(*goto_pos as usize) else {
                     return Err(CompilerError::InvalidRef(instr.clone(), no, cursor, routines));
                 };

@@ -27,6 +27,7 @@
 /// # Example
 ///
 /// ```
+/// ##![cfg_attr(coverage_nightly, feature(coverage_attribute), coverage(off))]
 /// use aluvm::isa::Instr;
 /// use aluvm::regs::Status;
 /// use aluvm::{aluasm, Lib, LibId, LibSite, Vm};

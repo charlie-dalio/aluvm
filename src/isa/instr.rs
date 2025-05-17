@@ -53,6 +53,22 @@ pub enum ExecStep<Site> {
     Ret(Site),
 }
 
+/// A local goto position for the jump instructions.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+pub enum GotoTarget<'a> {
+    /// The instruction does not perform a local jump.
+    ///
+    /// NB: It still may call a code from an external library, use [`Instruction::remote_goto_pos`]
+    /// to check that.
+    None,
+
+    /// An absolute offset in the code segment of the library.
+    Absolute(&'a mut u16),
+
+    /// An offset relative to the current position.
+    Relative(&'a mut i8),
+}
+
 /// Trait for instructions
 pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Clone + Eq {
     /// The names of the ISA extension set these instructions cover.
@@ -74,7 +90,7 @@ pub trait Instruction<Id: SiteId>: Display + Debug + Bytecode<Id> + Clone + Eq {
 
     /// If an instruction is a jump operation inside the library, it should return its goto target
     /// position number.
-    fn local_goto_pos(&mut self) -> Option<&mut u16>;
+    fn local_goto_pos(&mut self) -> GotoTarget;
 
     /// If an instruction is a jump operation into an external library, it should return its remote
     /// target.
