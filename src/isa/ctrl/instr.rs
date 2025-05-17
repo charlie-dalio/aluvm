@@ -54,21 +54,21 @@ pub enum CtrlInstr<Id: SiteId> {
     RsetCk,
 
     /// Jump to location (unconditionally).
-    #[display("jmp     {pos:04}")]
+    #[display("jmp     {pos}")]
     Jmp {
         /** Target position to jump to */
         pos: u16,
     },
 
     /// Jump to location if `CO` is in a failed state.
-    #[display("jif     CO, {pos:04}")]
+    #[display("jif     CO, {pos}")]
     JiOvfl {
         /** Target position to jump to */
         pos: u16,
     },
 
     /// Jump to location if `CK` is in a failed state.
-    #[display("jif     CK, {pos:04}")]
+    #[display("jif     CK, {pos}")]
     JiFail {
         /** Target position to jump to */
         pos: u16,
@@ -103,7 +103,7 @@ pub enum CtrlInstr<Id: SiteId> {
     },
 
     /// Subroutine call.
-    #[display("call    {pos:04}")]
+    #[display("call    {pos}")]
     Fn {
         /** Target position for the function jump */
         pos: u16,

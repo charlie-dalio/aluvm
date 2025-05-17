@@ -328,10 +328,10 @@ mod test {
             chk     CO;
             chk     CK;
 
-            jif     CO, :MAIN;
+            jif     CO, MAIN;
             jif     CO, -1;
 
-            jif     CK, :MAIN;
+            jif     CK, MAIN;
             jif     CK, -1;
 
             fail    CK;
@@ -341,13 +341,13 @@ mod test {
             chk     CO;
 
             jmp     +5;
-            jmp     :MAIN; // this is skipped
+            jmp     MAIN; // this is skipped
 
-            call    :SUB;
+            call    SUB;
             stop;
 
            .routine :SUB;
-            jmp     :END;
+            jmp     END;
            .label   :END;
             ret;
         }
@@ -379,26 +379,26 @@ mod test {
         lib.print_disassemble::<Instr<_>>(&mut buf).unwrap();
         assert_eq!(
             String::from_utf8(buf).unwrap(),
-            "@000000: nop
-@000001: chk     CO
-@000002: chk     CK
-@000003: jif     CO, 0000
-@000006: jif     CO, -1
-@000008: jif     CK, 0000
-@000011: jif     CK, -1
-@000013: fail    CK
-@000014: mov     CO, CK
-@000015: chk     CK
-@000016: not     CO
-@000017: chk     CO
-@000018: jmp     +5
-@000020: jmp     0000
-@000023: call    0027
-@000026: stop
-@000027: nop
-@000028: jmp     0031
-@000031: nop
-@000032: ret
+            "melon@000000: nop
+melon@000001: chk     CO
+melon@000002: chk     CK
+melon@000003: jif     CO, 0
+melon@000006: jif     CO, -1
+melon@000008: jif     CK, 0
+melon@000011: jif     CK, -1
+melon@000013: fail    CK
+melon@000014: mov     CO, CK
+melon@000015: chk     CK
+melon@000016: not     CO
+melon@000017: chk     CO
+melon@000018: jmp     +5
+melon@000020: jmp     0
+melon@000023: call    27
+melon@000026: stop
+melon@000027: nop
+melon@000028: jmp     31
+melon@000031: nop
+melon@000032: ret
 "
         );
     }
