@@ -230,4 +230,9 @@ macro_rules! instr {
     (call: $pos:ident) => {
         $crate::isa::CtrlInstr::Fn { pos: $pos }.into()
     };
+
+    // Halt
+    (halt) => {
+        $crate::isa::ReservedInstr::default().into()
+    };
 }

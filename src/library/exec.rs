@@ -99,7 +99,7 @@ impl Lib {
                 {
                     let (byte, bit) = marshaller.offset();
                     eprintln!(
-                        "; unable to decode instruction at byte pos {byte:06X}#h, bit pos {bit}",
+                        "; unable to decode instruction at byte pos {byte:06X}.h, bit pos {bit}",
                     );
                 }
                 return Jump::Halt;
@@ -107,7 +107,7 @@ impl Lib {
             let next_pos = marshaller.offset();
             debug_assert_eq!(next_pos.1, u3::ZERO);
             #[cfg(feature = "log")]
-            eprintln!("; return to the caller @{:06X}#h", next_pos.0);
+            eprintln!("; return to the caller @{:06X}.h", next_pos.0);
         }
 
         while !marshaller.is_eof() {
@@ -118,7 +118,7 @@ impl Lib {
                 {
                     let (byte, bit) = marshaller.offset();
                     eprintln!(
-                        "unable to decode instruction at byte pos {byte:06X}#h, bit pos {bit}",
+                        "unable to decode instruction at byte pos {byte:06X}.h, bit pos {bit}",
                     );
                 }
                 return Jump::Halt;

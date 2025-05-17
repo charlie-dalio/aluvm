@@ -65,9 +65,13 @@ impl From<&'static str> for IsaId {
 }
 
 /// Reserved instruction, which equal to [`crate::ExecStep::Fail`].
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Display, Default)]
-#[display("halt    {0:#02X}#h")]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Display)]
+#[display("halt    {0:#02X}.h")]
 pub struct ReservedInstr(/** Reserved instruction op code value */ pub(super) u8);
+
+impl Default for ReservedInstr {
+    fn default() -> Self { Self(0xFF) }
+}
 
 /// Complete AluVM ISA.
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug, Display, From)]
