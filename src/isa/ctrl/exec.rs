@@ -324,7 +324,7 @@ mod test {
         const END: u16 = 2;
 
         aluasm! {
-           .routine :MAIN;
+           routine MAIN:
             chk     CO;
             chk     CK;
 
@@ -346,9 +346,9 @@ mod test {
             call    SUB;
             stop;
 
-           .routine :SUB;
+           routine  SUB:
             jmp     END;
-           .label   :END;
+           label    END:
             ret;
         }
     }
@@ -379,26 +379,26 @@ mod test {
         lib.print_disassemble::<Instr<_>>(&mut buf).unwrap();
         assert_eq!(
             String::from_utf8(buf).unwrap(),
-            "melon@000000: nop
-melon@000001: chk     CO
-melon@000002: chk     CK
-melon@000003: jif     CO, 0
-melon@000006: jif     CO, -1
-melon@000008: jif     CK, 0
-melon@000011: jif     CK, -1
-melon@000013: fail    CK
-melon@000014: mov     CO, CK
-melon@000015: chk     CK
-melon@000016: not     CO
-melon@000017: chk     CO
-melon@000018: jmp     +5
-melon@000020: jmp     0
-melon@000023: call    27
-melon@000026: stop
-melon@000027: nop
-melon@000028: jmp     31
-melon@000031: nop
-melon@000032: ret
+            "offset 000000: nop
+offset 000001: chk     CO
+offset 000002: chk     CK
+offset 000003: jif     CO, 0
+offset 000006: jif     CO, -1
+offset 000008: jif     CK, 0
+offset 000011: jif     CK, -1
+offset 000013: fail    CK
+offset 000014: mov     CO, CK
+offset 000015: chk     CK
+offset 000016: not     CO
+offset 000017: chk     CO
+offset 000018: jmp     +5
+offset 000020: jmp     0
+offset 000023: call    27
+offset 000026: stop
+offset 000027: nop
+offset 000028: jmp     31
+offset 000031: nop
+offset 000032: ret
 "
         );
     }

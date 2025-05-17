@@ -34,16 +34,16 @@
 /// const START: u16 = 0;
 ///
 /// let code = aluasm! {
-///   .routine  :START      ;
-///     not     CO          ;
-///     fail    CK          ;
-///     mov     CO, CK      ;
-///     chk     CO          ;
-///     jif     CO, +2      ;
-///     jif     CK, -2      ;
-///     jmp     +2          ;
-///     call    START       ;
-///     stop                ;
+///    routine  START:
+///     not     CO;
+///     fail    CK;
+///     mov     CO, CK;
+///     chk     CO;
+///     jif     CO, +2;
+///     jif     CK, -2;
+///     jmp     +2;
+///     call    START;
+///     stop;
 /// };
 ///
 /// let lib = Lib::assemble::<Instr<LibId>>(&code).unwrap();
@@ -73,9 +73,16 @@ macro_rules! aluasm {
 macro_rules! aluasm_inner {
     // end of program
     { $code:ident => } => { };
+    // skipped annotations
+    { $code:ident => offset $_:literal : $($tt:tt)* } => {
+        $crate::aluasm_inner! { $code => $( $tt )* }
+    };
+    { $code:ident => site $lib:ident @ $_:literal : $($tt:tt)* } => {
+        $crate::aluasm_inner! { $code => $( $tt )* }
+    };
     // macro instruction
-    { $code:ident => . $masm:ident : $label:ident ; $($tt:tt)* } => {
-        $code.push(instr!{ . $masm : $label });
+    { $code:ident => $masm:ident $label:ident : $($tt:tt)* } => {
+        $code.push(instr!{ $masm $label : });
         $crate::aluasm_inner! { $code => $( $tt )* }
     };
     // no operands
@@ -139,16 +146,16 @@ macro_rules! aluasm_inner {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! instr {
-    (.routine: $_:ident) => {
+    (routine $_:ident :) => {
         $crate::isa::CtrlInstr::Nop.into()
     };
-    (.proc: $_:ident) => {
+    (proc $_:ident :) => {
         $crate::isa::CtrlInstr::Nop.into()
     };
-    (.label: $_:ident) => {
+    (label $_:ident :) => {
         $crate::isa::CtrlInstr::Nop.into()
     };
-    (.loop: $_:ident) => {
+    (loop $_:ident :) => {
         $crate::isa::CtrlInstr::Nop.into()
     };
 

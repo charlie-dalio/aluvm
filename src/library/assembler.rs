@@ -23,7 +23,6 @@
 // the License.
 
 use amplify::confinement::{self, TinyOrdSet};
-use baid64::DisplayBaid64;
 
 use super::{Lib, LibId, MarshallError, Marshaller};
 use crate::isa::{BytecodeRead, CodeEofError, Instruction};
@@ -82,11 +81,9 @@ impl Lib {
         Isa: Instruction<LibId>,
     {
         let mut reader = Marshaller::with(&self.code, &self.data, &self.libs);
-        let id = self.lib_id().to_baid64_mnemonic().to_string();
-        let id = id.split_once("-").unwrap().0;
         while !reader.is_eof() {
             let pos = reader.offset().0 as usize;
-            write!(writer, "{id}@{pos:06}: ")?;
+            write!(writer, "offset {pos:06}: ")?;
             match Isa::decode_instr(&mut reader) {
                 Ok(instr) => writeln!(writer, "{instr}")?,
                 Err(_) => writeln!(writer, "; <incomplete instruction>")?,
