@@ -528,4 +528,27 @@ mod tests {
         marshaller.write_byte(0b11100111).unwrap_err();
         assert_eq!(&marshaller.bytecode[0xFFFD..], &[0b11110111, 0b1011]);
     }
+
+    #[test]
+    #[should_panic(expected = "incomplete marshalling")]
+    fn incomplete_byte() {
+        let libseg = LibsSeg::default();
+        let mut marshaller = Marshaller::with(vec![], vec![], &libseg);
+        marshaller.write_2bits(u2::with(0b00000011)).unwrap();
+        marshaller.write_3bits(u3::with(0b00000101)).unwrap();
+        marshaller.write_7bits(u7::with(0b00000000)).unwrap();
+        marshaller.finish();
+    }
+
+    #[test]
+    fn bit_order() {
+        let libseg = LibsSeg::default();
+        let mut marshaller = Marshaller::with(vec![], vec![], &libseg);
+        marshaller.write_2bits(u2::with(0b00000011)).unwrap();
+        marshaller.write_3bits(u3::with(0b00000101)).unwrap();
+        marshaller.write_3bits(u3::with(0b00000001)).unwrap();
+        let (code, data) = marshaller.finish();
+        assert_eq!(code.release(), vec![0b0011_0111u8]);
+        assert!(data.is_empty());
+    }
 }
