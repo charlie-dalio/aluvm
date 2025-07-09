@@ -29,7 +29,9 @@ mod bytecode;
 mod arch;
 
 mod ctrl;
-mod masm;
+#[cfg(feature = "masm")]
+#[macro_use]
+pub mod masm;
 
 pub use arch::{Instr, IsaId, ReservedInstr, ISA_ID_MAX_LEN};
 pub use bytecode::{Bytecode, BytecodeRead, BytecodeWrite, CodeEofError};
