@@ -157,6 +157,7 @@ mod vm;
 #[cfg(feature = "stl")]
 pub mod stl;
 #[cfg(feature = "masm")]
+#[path = "isa/masm.rs"]
 pub mod masm;
 
 #[cfg(feature = "masm")]
