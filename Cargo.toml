@@ -32,7 +32,8 @@ serde = { version = "1", optional = true }
 
 [features]
 default = []
-all = ["std", "stl", "log", "armor", "serde"]
+masm    = []
+all     = ["std", "stl", "log", "armor", "serde", "masm"]
 
 std = ["amplify/std"]
 armor = ["dep:ascii-armor", "strict_types/armor"]

@@ -156,7 +156,11 @@ mod library;
 mod vm;
 #[cfg(feature = "stl")]
 pub mod stl;
+#[cfg(feature = "masm")]
+pub mod masm;
 
+#[cfg(feature = "masm")]
+pub use masm::*;
 /// Module providing register information
 pub mod regs {
     pub use crate::core::{Status, CALL_STACK_SIZE_MAX};
